@@ -1,2 +1,6 @@
 .vscode
 deferred_planarity_test/bin
+make_graphs/bin
+make_graphs/test_graphs
+make_planar/bin
+test_area

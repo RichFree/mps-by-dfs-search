@@ -141,11 +141,10 @@ class maximal_planar_subgraph_finder
 public:
 	maximal_planar_subgraph_finder();
 	~maximal_planar_subgraph_finder();
-	void find_mps(ifstream* in, ofstream* out);
+	int find_mps(string input_file);
 	node* get_new_node(node_type t);
-	void read_from_file(ifstream* in);
-	void output(ofstream* out);
-	void output_deleted_edges(ofstream* out);
+    void read_from_gml(string input_file);
+	int output_removed_edge_size();
 	void postOrderTraversal();
 	void sort_adj_list();
 	void determine_edges();
