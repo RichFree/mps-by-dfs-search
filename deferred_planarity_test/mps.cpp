@@ -31,6 +31,14 @@ maximal_planar_subgraph_finder::postOrderTraversal() {
 	}
 }
 
+//Set the post-order-list via given list
+void
+maximal_planar_subgraph_finder::set_post_order(vector<int> post_order) {
+    for (int i = 0; i < _node_list.size(); ++i) {
+        _node_list[i]->set_post_order_index(post_order[i]);
+    }
+}
+
 //Sort the adj-list of every node increasingly according to post-order-index.
 void
 maximal_planar_subgraph_finder::sort_adj_list() {

@@ -13,9 +13,24 @@ int find_mps(string input_file) {
 	return m.find_mps(input_file);
 }
 
+int compute_removed_edge_size(string input_file, vector<int> post_order) {
+    maximal_planar_subgraph_finder m;
+    return m.compute_removed_edge_size(input_file, post_order);
+}
+
 int maximal_planar_subgraph_finder::find_mps(string input_file) {
 	read_from_gml(input_file);
 	postOrderTraversal();
+	sort_adj_list();
+	determine_edges();
+	back_edge_traversal();
+	return output_removed_edge_size();
+}
+
+
+int maximal_planar_subgraph_finder::compute_removed_edge_size(string input_file, vector<int> post_order) {
+	read_from_gml(input_file);
+    set_post_order(post_order);
 	sort_adj_list();
 	determine_edges();
 	back_edge_traversal();
