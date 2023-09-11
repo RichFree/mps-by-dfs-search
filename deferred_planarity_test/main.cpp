@@ -18,6 +18,9 @@ using namespace std;
 
 int compute_removed_edge_size(string input_file, vector<int> post_order);
 
+vector<int> generate_post_order(string input_file);
+vector<int> generate_mutated_post_order(string input_file, vector<int> post_order);
+
 int get_graph_size(string input_file) {
     ogdf::Graph G;
 
@@ -36,25 +39,23 @@ int get_graph_size(string input_file) {
 
 int main(int argc, char* argv[]) {
     string input_file = argv[1];
-    int num_runs = stoi(argv[2]);
-    // find the size of the graph here
-    int node_size = get_graph_size(input_file);
-    // generate order here
-    vector<int> post_order;
-    for (int i=0; i < node_size; ++i) {
-        post_order.push_back(i);
-    }
 
-    for (int i=0; i< num_runs; ++i) {
-        std::random_device rd;
-        std::mt19937 g(rd());
-    
-        std::shuffle(post_order.begin(), post_order.end(), g);
-        // print order
-        std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, " "));
-        std::cout << std::endl;
-        std::cout << "Number of removed edges: " << compute_removed_edge_size(input_file, post_order) << std::endl;
-    }
+    // generate order here
+    vector<int> post_order = generate_post_order(input_file);
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, " "));
+    std::cout << std::endl;
+
+    // generate mutated order
+    vector<int> mutated_order = generate_mutated_post_order(input_file, post_order);
+    post_order = mutated_order;
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, " "));
+    std::cout << std::endl;
+
+
+    // print order
+    int removed_edges = compute_removed_edge_size(input_file, post_order);
+    std::cout << "Number of removed edges: " << removed_edges << std::endl;
+
 
 	return 0;
 }

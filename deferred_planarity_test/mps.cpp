@@ -20,7 +20,7 @@ maximal_planar_subgraph_finder::get_new_node(node_type t) {
 }
 
 //Determine the post-order-list by a DFS-traversal.
-void 
+vector<int> 
 maximal_planar_subgraph_finder::postOrderTraversal() {
 	node::init_mark();
 	int postOrderID = 0;
@@ -29,7 +29,112 @@ maximal_planar_subgraph_finder::postOrderTraversal() {
 			_node_list[i]->DFS_visit(_post_order_list, postOrderID);
 		}
 	}
+
+    vector<int> post_order;
+    for (int i = 0; i < _post_order_list.size(); ++i) {
+        post_order.push_back(_post_order_list[i]->node_id());
+    }
+    return post_order;
 }
+
+
+//Determine the post-order-list by a DFS-traversal.
+void 
+maximal_planar_subgraph_finder::guidedPostOrderTraversal(vector<int> post_order) {
+	node::init_mark();
+
+    vector<int> rev_post_order;
+    for (int i = post_order.size() - 1; i >= 0; --i) {
+        rev_post_order.push_back(post_order[i]);
+    }
+	int postOrderID = 0;
+
+    int end_condition = _node_list.size();
+    int start = rev_post_order[0];
+    int i = start;
+    while (true)
+    {
+        if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
+        {
+            if (!_node_list[i]->is_marked())
+            {
+                _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order);
+            }
+            break;
+        }
+        // std::cout << _node_list[i]->node_id() << ", " << !_node_list[i]->is_marked() << std::endl;
+        if (!_node_list[i]->is_marked())
+        {
+            _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order);
+        }
+        i = (i + 1) % end_condition;
+    }
+}
+
+//Determine the post-order-list by a DFS-traversal.
+vector<int> 
+maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order) {
+	node::init_mark();
+
+    vector<int> rev_post_order;
+    for (int i = post_order.size() - 1; i >= 0; --i) {
+        rev_post_order.push_back(post_order[i]);
+    }
+	int postOrderID = 0;
+
+    // introduce random selection
+    std::random_device rd;
+    std::mt19937 rng(rd());
+    // Define the range [0, n]
+    int n = _node_list.size() - 1;  // Change 'n' to your desired upper bound
+    // Create a uniform distribution for the range [0, n]
+    std::uniform_int_distribution<int> distribution(0, n);
+    // Generate a random number between 0 and n (inclusive)
+    int mutate_point = distribution(rng);
+    std::cout << "the mutate point: " << mutate_point << std::endl;
+
+    // set loop variables
+    int start = rev_post_order[0];
+    int i = start;
+
+    // if mutate_point = 0
+    if (mutate_point == 0) {
+        // generate another point
+        start = distribution(rng); 
+    }
+
+
+    int end_condition = _node_list.size();
+    while (true)
+    {
+        if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
+        {
+            if (!_node_list[i]->is_marked())
+            {
+                _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, mutate_point);
+            }
+            break;
+        }
+        // std::cout << _node_list[i]->node_id() << ", " << !_node_list[i]->is_marked() << std::endl;
+        if (!_node_list[i]->is_marked())
+        {
+            _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, mutate_point);
+        }
+        i = (i + 1) % end_condition;
+    }
+
+    vector<int> return_order;
+    for (int i = 0; i < _post_order_list.size(); ++i) {
+        return_order.push_back(_post_order_list[i]->node_id());
+    }
+
+    // we have to reverse the order as we add to list in the forward direction of recursion
+    // unlike that of previous methods where we add to list in the return direction of recursion
+    std::reverse(return_order.begin(), return_order.end());
+    return return_order;
+}
+
+
 
 //Set the post-order-list via given list
 void

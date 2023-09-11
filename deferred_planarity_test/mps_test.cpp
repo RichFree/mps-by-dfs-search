@@ -8,6 +8,9 @@
 //-----------------------------------------------------------------------------------
 // Finding MPS
 //-----------------------------------------------------------------------------------
+
+// programs to call from main:
+
 int find_mps(string input_file) {
 	maximal_planar_subgraph_finder m;
 	return m.find_mps(input_file);
@@ -18,6 +21,19 @@ int compute_removed_edge_size(string input_file, vector<int> post_order) {
     return m.compute_removed_edge_size(input_file, post_order);
 }
 
+vector<int> generate_post_order(string input_file) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_post_order(input_file);
+}
+
+vector<int> generate_mutated_post_order(string input_file, vector<int> post_order) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_mutated_post_order(input_file, post_order);
+}
+
+
+// ---------
+
 int maximal_planar_subgraph_finder::find_mps(string input_file) {
 	read_from_gml(input_file);
 	postOrderTraversal();
@@ -27,10 +43,34 @@ int maximal_planar_subgraph_finder::find_mps(string input_file) {
 	return output_removed_edge_size();
 }
 
+vector<int> maximal_planar_subgraph_finder::generate_post_order(string input_file) {
+    read_from_gml(input_file);
+    return postOrderTraversal();
+}
+
+vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(string input_file, vector<int> post_order) {
+    read_from_gml(input_file);
+    return mutatedPostOrderTraversal(post_order);
+}
+
 
 int maximal_planar_subgraph_finder::compute_removed_edge_size(string input_file, vector<int> post_order) {
 	read_from_gml(input_file);
-    set_post_order(post_order);
+    guidedPostOrderTraversal(post_order);
+
+    // let's reverse the order
+    std::reverse(_post_order_list.begin(), _post_order_list.end());
+    // then set post_order_index
+    for (int i = 0; i < _post_order_list.size(); ++i) {
+        _node_list[_post_order_list[i]->node_id()]->set_post_order_index(i);
+    }
+
+    std::cout << "check order of duplicated traversal" << std::endl;
+    for (int i = 0; i < _post_order_list.size(); ++i) {
+        std::cout << _post_order_list[i]->node_id() << " ";
+    }
+
+    std::cout << std::endl;
 	sort_adj_list();
 	determine_edges();
 	back_edge_traversal();

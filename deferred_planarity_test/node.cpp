@@ -66,6 +66,103 @@ void node::DFS_visit(vector<node*> &dfsList, int &index) {
 	++index;
 }
 
+
+void node::guided_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order) {
+	mark();
+    // you will want to sort the neighbor nodes by the order they appear in the rev_post_order
+    vector<node *> neighbor_list;
+    std::unordered_set<int> neighbor_set; 
+    
+    // create an unordered set to efficiently check for presence of an element
+    for (int i = 0; i < _adj_list.size(); ++i) {
+        neighbor_set.insert(_adj_list[i]->node_id());
+    }
+
+    // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
+    for (int i = 0; i < rev_post_order.size(); ++i) {
+        if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
+            neighbor_list.push_back(node_list[rev_post_order[i]]);
+        }
+    }
+
+    // print the neighbors
+    // std::cout << "current index: " << this->node_id() << std::endl;
+    // for (int i = 0; i < neighbor_list.size(); ++i) {
+    //     std::cout << neighbor_list[i]->node_id() << " ";
+    // }
+    // std::cout << std::endl;
+
+	set_post_order_index(index);
+	dfsList.push_back(this);
+	++index;
+
+	for (int i = 0; i < neighbor_list.size(); ++i) {
+		if (!neighbor_list[i]->is_marked()) {
+			neighbor_list[i]->_parent = this;
+			neighbor_list[i]->guided_DFS_visit(dfsList, node_list, index, rev_post_order);
+		}
+	}
+}
+
+
+void node::mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order, int &mutate_point) {
+	mark();
+    // you will want to sort the neighbor nodes by the order they appear in the rev_post_order
+    vector<node *> neighbor_list;
+    std::unordered_set<int> neighbor_set; 
+    
+    // create an unordered set to efficiently check for presence of an element
+    for (int i = 0; i < _adj_list.size(); ++i) {
+        neighbor_set.insert(_adj_list[i]->node_id());
+    }
+
+    // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
+    for (int i = 0; i < rev_post_order.size(); ++i) {
+        if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
+            neighbor_list.push_back(node_list[rev_post_order[i]]);
+        }
+    }
+
+    // print the neighbors
+    std::cout << "current index: " << this->node_id() << std::endl;
+    for (int i = 0; i < neighbor_list.size(); ++i) {
+        std::cout << neighbor_list[i]->node_id() << " ";
+    }
+    std::cout << std::endl;
+
+	set_post_order_index(index);
+	dfsList.push_back(this);
+	++index;
+
+    if (index - 1 == mutate_point) {
+        // Create a random number generator and seed it
+        std::cout << "mutated at index: " << index - 1<< "and at mutate point: " << mutate_point << std::endl;
+        std::random_device rd;
+        std::mt19937 rng(rd());
+        // Use std::shuffle to shuffle the elements in the vector
+        std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
+        // print the neighbors
+        std::cout << "order after mutation: " << std::endl;
+        std::cout << "current index: " << this->node_id() << std::endl;
+        for (int i = 0; i < neighbor_list.size(); ++i)
+        {
+            std::cout << neighbor_list[i]->node_id() << " ";
+        }
+        std::cout << std::endl;
+    } 
+    
+    for (int i = 0; i < neighbor_list.size(); ++i)
+    {
+        if (!neighbor_list[i]->is_marked())
+        {
+            neighbor_list[i]->_parent = this;
+            neighbor_list[i]->mutated_DFS_visit(dfsList, node_list, index, rev_post_order, mutate_point);
+        }
+    }
+}
+
+
+
 //-----------------------------------------------------------------------------------
 // PARENT-CHILDREN
 //-----------------------------------------------------------------------------------

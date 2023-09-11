@@ -10,6 +10,9 @@
 #include <vector>
 #include <utility>
 #include <climits>
+#include <random>
+#include <algorithm>
+#include <unordered_set>
 
 using namespace std;
 
@@ -53,6 +56,8 @@ public:
 	node* adj(int i);
 	void set_adj_list(vector<node*> vec);
 	void DFS_visit(vector<node*> &dfsList, int &index);
+	void guided_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order);
+	void mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order, int &mutate_point);
 
 	//PARENT-CHILDREN
 	void set_parent(node* n) ;
@@ -143,10 +148,14 @@ public:
 	~maximal_planar_subgraph_finder();
 	int find_mps(string input_file);
 	int compute_removed_edge_size(string input_file, vector<int> post_order);
+	vector<int> generate_post_order(string input_file);
+	vector<int> generate_mutated_post_order(string input_file, vector<int> post_order);
 	node* get_new_node(node_type t);
     void read_from_gml(string input_file);
 	int output_removed_edge_size();
-	void postOrderTraversal();
+	vector<int> postOrderTraversal();
+	vector<int> mutatedPostOrderTraversal(vector<int> post_order);
+	void guidedPostOrderTraversal(vector<int> post_order);
     void set_post_order(vector<int> post_order);
 	void sort_adj_list();
 	void determine_edges();
