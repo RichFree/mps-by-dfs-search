@@ -124,11 +124,11 @@ void node::mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, i
     }
 
     // print the neighbors
-    std::cout << "current index: " << this->node_id() << std::endl;
-    for (int i = 0; i < neighbor_list.size(); ++i) {
-        std::cout << neighbor_list[i]->node_id() << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "current index: " << this->node_id() << std::endl;
+    // for (int i = 0; i < neighbor_list.size(); ++i) {
+    //     std::cout << neighbor_list[i]->node_id() << " ";
+    // }
+    // std::cout << std::endl;
 
 	set_post_order_index(index);
 	dfsList.push_back(this);
@@ -136,19 +136,19 @@ void node::mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, i
 
     if (index - 1 == mutate_point) {
         // Create a random number generator and seed it
-        std::cout << "mutated at index: " << index - 1<< "and at mutate point: " << mutate_point << std::endl;
+        // std::cout << "mutated at index: " << index - 1<< "and at mutate point: " << mutate_point << std::endl;
         std::random_device rd;
         std::mt19937 rng(rd());
         // Use std::shuffle to shuffle the elements in the vector
         std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
-        // print the neighbors
-        std::cout << "order after mutation: " << std::endl;
-        std::cout << "current index: " << this->node_id() << std::endl;
-        for (int i = 0; i < neighbor_list.size(); ++i)
-        {
-            std::cout << neighbor_list[i]->node_id() << " ";
-        }
-        std::cout << std::endl;
+        // // print the neighbors
+        // std::cout << "order after mutation: " << std::endl;
+        // std::cout << "current index: " << this->node_id() << std::endl;
+        // for (int i = 0; i < neighbor_list.size(); ++i)
+        // {
+        //     std::cout << neighbor_list[i]->node_id() << " ";
+        // }
+        // std::cout << std::endl;
     } 
     
     for (int i = 0; i < neighbor_list.size(); ++i)

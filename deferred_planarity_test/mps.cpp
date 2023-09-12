@@ -91,7 +91,7 @@ maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order
     std::uniform_int_distribution<int> distribution(0, n);
     // Generate a random number between 0 and n (inclusive)
     int mutate_point = distribution(rng);
-    std::cout << "the mutate point: " << mutate_point << std::endl;
+    // std::cout << "the mutate point: " << mutate_point << std::endl;
 
     // set loop variables
     int start = rev_post_order[0];

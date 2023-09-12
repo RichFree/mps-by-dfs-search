@@ -65,12 +65,12 @@ int maximal_planar_subgraph_finder::compute_removed_edge_size(string input_file,
         _node_list[_post_order_list[i]->node_id()]->set_post_order_index(i);
     }
 
-    std::cout << "check order of duplicated traversal" << std::endl;
-    for (int i = 0; i < _post_order_list.size(); ++i) {
-        std::cout << _post_order_list[i]->node_id() << " ";
-    }
+    // std::cout << "check order of duplicated traversal" << std::endl;
+    // for (int i = 0; i < _post_order_list.size(); ++i) {
+    //     std::cout << _post_order_list[i]->node_id() << " ";
+    // }
+    // std::cout << std::endl;
 
-    std::cout << std::endl;
 	sort_adj_list();
 	determine_edges();
 	back_edge_traversal();
