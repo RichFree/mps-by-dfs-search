@@ -13,6 +13,7 @@
 #include <vector>
  
 #include <ogdf/fileformats/GraphIO.h>
+#define START_TEMP 100
 
 using namespace std;
 
@@ -39,20 +40,19 @@ vector<int> sa_solve(string input_file, int k_max) {
     int e_new = 0;
     int delta = 0;
     // initialize terms
-    double temp = 100;
+    double temp;
 
     for (int k = 0; k < k_max; ++k) {
-        temp = temp_decay(k, k_max);
+        temp = START_TEMP * temp_decay(k, k_max);
 
         state_new = generate_mutated_post_order(input_file, state_old);
         e_new = compute_removed_edge_size(input_file, state_new);
         delta = e_new - e_old;
 
         if (std::exp( -(delta) / temp) > distribution(rng)) {
-           state_old = state_new; 
-           e_old = e_new;
+            state_old = state_new; 
+            e_old = e_new;
         }
-        // std::cout << "temp: " << temp << ", score: " << e_old << std::endl;
     }
 
     return state_old;

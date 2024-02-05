@@ -4,7 +4,7 @@
 
 #include "mps.h"
 
-//Empty constructor
+// constructor can be made empty
 maximal_planar_subgraph_finder::maximal_planar_subgraph_finder() {}
 
 //Destructor

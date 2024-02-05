@@ -1,7 +1,11 @@
 .vscode
-deferred_planarity_test/bin
+deferred_planarity_test/build
 make_graphs/bin
 make_graphs/test_graphs
 make_planar/bin
 test_area
 dpt
+
+# remove build intermediate files
+deferred_planarity_test/obj/
+deferred_planarity_test/bin/

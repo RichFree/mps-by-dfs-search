@@ -108,7 +108,7 @@ void maximal_planar_subgraph_finder::read_from_gml(string input_file) {
 
 
 
-//Output a maximal planar subgraph in the same format as input.
+// count the number of removed edges
 int maximal_planar_subgraph_finder::output_removed_edge_size() {
     int sum = 0;
     for (int i = 0; i < _back_edge_list.size(); ++i) {

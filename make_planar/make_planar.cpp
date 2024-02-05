@@ -302,9 +302,11 @@ int main(int argc, char* argv[])
 
     std::cout << "Edges removed:" << delEdges->size() << std::endl;
 
+
+    // delete removed edges
     for (edge e: *delEdges) {
         // print removed edges
-        std::cout << e->adjSource() << std::endl;
+        // std::cout << e->adjSource() << std::endl;
         G.delEdge(e);
     }
 
