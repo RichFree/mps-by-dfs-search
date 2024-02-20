@@ -153,10 +153,12 @@ public:
 	node* get_new_node(node_type t);
     void read_from_gml(string input_file);
 	int output_removed_edge_size();
-	vector<int> postOrderTraversal();
-	vector<int> mutatedPostOrderTraversal(vector<int> post_order);
+    vector<int> return_post_order();
+	void postOrderTraversal();
 	void guidedPostOrderTraversal(vector<int> post_order);
-    void set_post_order(vector<int> post_order);
+	void mutatedPostOrderTraversal(vector<int> post_order);
+    // void set_post_order(vector<int> post_order);
+    void print_post_order();
 	void sort_adj_list();
 	void determine_edges();
 	void back_edge_traversal();

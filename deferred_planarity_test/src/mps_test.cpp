@@ -5,6 +5,8 @@
 #include "mps.h"
 #include <ogdf/fileformats/GraphIO.h>
 
+#define DEBUG
+
 //-----------------------------------------------------------------------------------
 // Finding MPS
 //-----------------------------------------------------------------------------------
@@ -37,6 +39,11 @@ vector<int> generate_mutated_post_order(string input_file, vector<int> post_orde
 int maximal_planar_subgraph_finder::find_mps(string input_file) {
 	read_from_gml(input_file);
 	postOrderTraversal();
+
+    #ifdef DEBUG
+    print_post_order();
+    #endif
+
 	sort_adj_list();
 	determine_edges();
 	back_edge_traversal();
@@ -45,12 +52,25 @@ int maximal_planar_subgraph_finder::find_mps(string input_file) {
 
 vector<int> maximal_planar_subgraph_finder::generate_post_order(string input_file) {
     read_from_gml(input_file);
-    return postOrderTraversal();
+    postOrderTraversal();
+
+    #ifdef DEBUG
+    print_post_order();
+    #endif
+
+    return return_post_order();
 }
 
+// result of this will be used as input to "compute_removed_edge_size"
 vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(string input_file, vector<int> post_order) {
     read_from_gml(input_file);
-    return mutatedPostOrderTraversal(post_order);
+    mutatedPostOrderTraversal(post_order);
+
+    #ifdef DEBUG
+    print_post_order();
+    #endif
+
+    return return_post_order();
 }
 
 
@@ -58,18 +78,14 @@ int maximal_planar_subgraph_finder::compute_removed_edge_size(string input_file,
 	read_from_gml(input_file);
     guidedPostOrderTraversal(post_order);
 
-    // let's reverse the order
-    std::reverse(_post_order_list.begin(), _post_order_list.end());
-    // then set post_order_index
+    // set post_order_index
     for (int i = 0; i < _post_order_list.size(); ++i) {
         _node_list[_post_order_list[i]->node_id()]->set_post_order_index(i);
     }
-
-    // std::cout << "check order of duplicated traversal" << std::endl;
-    // for (int i = 0; i < _post_order_list.size(); ++i) {
-    //     std::cout << _post_order_list[i]->node_id() << " ";
-    // }
-    // std::cout << std::endl;
+    
+    #ifdef DEBUG
+    print_post_order();
+    #endif
 
 	sort_adj_list();
 	determine_edges();
