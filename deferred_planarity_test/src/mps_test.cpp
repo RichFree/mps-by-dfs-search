@@ -33,6 +33,11 @@ vector<int> generate_mutated_post_order(string input_file, vector<int> post_orde
     return m.generate_mutated_post_order(input_file, post_order);
 }
 
+vector<int> generate_guided_post_order(string input_file, vector<int> post_order) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_guided_post_order(input_file, post_order);
+}
+
 
 // ---------
 
@@ -55,6 +60,7 @@ vector<int> maximal_planar_subgraph_finder::generate_post_order(string input_fil
     postOrderTraversal();
 
     #ifdef DEBUG
+    std::cout << "standard post order traversal" << std::endl;
     print_post_order();
     #endif
 
@@ -67,6 +73,20 @@ vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(string i
     mutatedPostOrderTraversal(post_order);
 
     #ifdef DEBUG
+    std::cout << "mutated post order traversal" << std::endl;
+    print_post_order();
+    #endif
+
+    return return_post_order();
+}
+
+// result of this will be used as input to "compute_removed_edge_size"
+vector<int> maximal_planar_subgraph_finder::generate_guided_post_order(string input_file, vector<int> post_order) {
+    read_from_gml(input_file);
+    guidedPostOrderTraversal(post_order);
+
+    #ifdef DEBUG
+    std::cout << "guided post order traversal" << std::endl;
     print_post_order();
     #endif
 
@@ -74,16 +94,13 @@ vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(string i
 }
 
 
+
 int maximal_planar_subgraph_finder::compute_removed_edge_size(string input_file, vector<int> post_order) {
 	read_from_gml(input_file);
     guidedPostOrderTraversal(post_order);
-
-    // set post_order_index
-    for (int i = 0; i < _post_order_list.size(); ++i) {
-        _node_list[_post_order_list[i]->node_id()]->set_post_order_index(i);
-    }
     
     #ifdef DEBUG
+    std::cout << "guided post order traversal" << std::endl;
     print_post_order();
     #endif
 

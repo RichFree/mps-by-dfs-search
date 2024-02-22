@@ -69,50 +69,96 @@ void node::DFS_visit(vector<node*> &dfsList, int &index) {
 }
 
 
-void node::guided_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order) {
+void node::guided_DFS_visit(vector<node *> &dfsList, 
+                            vector<node *> &node_list, 
+                            int &return_index, 
+                            vector<int> rev_post_order,
+                            int prev_node)
+{
+
 	mark();
 
+    // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
+    // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // purpose of this block: create list of neighbors
-    vector<node *> neighbor_list;
+    // create an unordered set to efficiently check for presence of an element
+    std::unordered_set<int> neighbor_set; 
     for (int i = 0; i < _adj_list.size(); ++i) {
-        // we get the neighbors via _adj_list
-        // we get the id's of the neighbor nodes, then we use the id's to get the actual nodes via node_list
-        // node_list maps id to the actual node
-        neighbor_list.push_back(node_list[_adj_list[i]->node_id()]);
+        neighbor_set.insert(_adj_list[i]->node_id());
     }
+    // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
+    // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
+    // it is ok if the neighbor was already visited before, 
+    // it would've been marked and will be subsequently ignored
+    vector<node *> neighbor_list;
+    for (int i = 0; i < rev_post_order.size(); ++i) {
+        if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
+            // only add if newly encountered
+            if (!node_list[rev_post_order[i]]->is_marked()) {
+                neighbor_list.push_back(node_list[rev_post_order[i]]);
+            }
+        }
+    }
+
+    #ifdef DEBUG
+    std::cout << "current node:" << this->node_id() << std::endl;
+    std::cout << "prev node:" << prev_node << std::endl;
+    for (int i = 0; i < neighbor_list.size(); ++i) {
+        std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
+    }
+    std::cout << std::endl;
+    #endif
+
 
 	
 	for (int i = 0; i < neighbor_list.size(); ++i) {
 		if (!neighbor_list[i]->is_marked()) {
 			neighbor_list[i]->_parent = this;
-			neighbor_list[i]->guided_DFS_visit(dfsList, node_list, index, rev_post_order);
+			neighbor_list[i]->guided_DFS_visit(dfsList, node_list, return_index, rev_post_order, this->node_id());
 		}
 	}
 
-    set_post_order_index(index);
+    set_post_order_index(return_index);
 	dfsList.push_back(this);
-	++index;
+	++return_index;
 }
 
 
-void node::mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order, int &mutate_point) {
+void node::mutated_DFS_visit(vector<node*> &dfsList, 
+                             vector<node*> &node_list, 
+                             int &return_index, 
+                             int &traversal_index, 
+                             vector<int> rev_post_order, 
+                             int mutate_point)
+{
+
     // mark current node
 	mark();
+    
+    // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
+    // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // purpose of this block: create list of neighbors
-    vector<node *> neighbor_list;
+    // create an unordered set to efficiently check for presence of an element
+    std::unordered_set<int> neighbor_set; 
     for (int i = 0; i < _adj_list.size(); ++i) {
-        // we get the neighbors via _adj_list
-        // we get the id's of the neighbor nodes, then we use the id's to get the actual nodes via node_list
-        // node_list maps id to the actual node
-        neighbor_list.push_back(node_list[_adj_list[i]->node_id()]);
+        neighbor_set.insert(_adj_list[i]->node_id());
     }
+    // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
+    // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
+    // it is ok if the neighbor was already visited before, 
+    // it would've been marked and will be subsequently ignored
+    vector<node *> neighbor_list;
+    for (int i = 0; i < rev_post_order.size(); ++i) {
+        if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
+            neighbor_list.push_back(node_list[rev_post_order[i]]);
+        }
+    }
+
     
 
     // since we increment the index before this line, the current index is "index - 1"
     // if the current index matches the mutate_point, then we know this is the cycle to mutate
-    if (index - 1 == mutate_point) {
+    if (traversal_index == mutate_point) {
         // Create a random number generator and seed it
         // std::cout << "mutated at index: " << index - 1<< "and at mutate point: " << mutate_point << std::endl;
         std::random_device rd;
@@ -120,22 +166,24 @@ void node::mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, i
         // Use std::shuffle to shuffle the elements in the vector
         std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
     } 
+
+    // increment traversal index after checking
+    // next node will receive incremented index
+    traversal_index++;
     
     for (int i = 0; i < neighbor_list.size(); ++i)
     {
         if (!neighbor_list[i]->is_marked())
         {
             neighbor_list[i]->_parent = this;
-            neighbor_list[i]->mutated_DFS_visit(dfsList, node_list, index, rev_post_order, mutate_point);
+            neighbor_list[i]->mutated_DFS_visit(dfsList, node_list, return_index, traversal_index, rev_post_order, mutate_point);
         }
     }
 
-	set_post_order_index(index);
+	set_post_order_index(return_index);
 	dfsList.push_back(this);
-	++index;
+	++return_index;
 }
-
-
 
 //-----------------------------------------------------------------------------------
 // PARENT-CHILDREN

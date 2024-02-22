@@ -61,19 +61,21 @@ maximal_planar_subgraph_finder::guidedPostOrderTraversal(vector<int> post_order)
     int end_condition = _node_list.size();
     int start = rev_post_order[0];
     int i = start;
+    
+    int prev_node = INT_MAX;
     while (true)
     {
         if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
         {
             if (!_node_list[i]->is_marked())
             {
-                _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order);
+                _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, prev_node);
             }
             break;
         }
         if (!_node_list[i]->is_marked())
         {
-            _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order);
+            _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, prev_node);
         }
         i = (i + 1) % end_condition;
     }
@@ -91,6 +93,7 @@ maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order
         rev_post_order.push_back(post_order[i]);
     }
 	int postOrderID = 0;
+    int traversal_index = 0;
 
     // introduce random selection
     std::random_device rd;
@@ -123,13 +126,13 @@ maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order
         {
             if (!_node_list[i]->is_marked())
             {
-                _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, mutate_point);
+                _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, rev_post_order, mutate_point);
             }
             break;
         }
         if (!_node_list[i]->is_marked())
         {
-            _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, mutate_point);
+            _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, rev_post_order, mutate_point);
         }
         i = (i + 1) % end_condition;
     }

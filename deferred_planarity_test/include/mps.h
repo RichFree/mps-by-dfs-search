@@ -56,8 +56,17 @@ public:
 	node* adj(int i);
 	void set_adj_list(vector<node*> vec);
 	void DFS_visit(vector<node*> &dfsList, int &index);
-	void guided_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order);
-	void mutated_DFS_visit(vector<node*> &dfsList, vector<node*> &node_list, int &index, vector<int> rev_post_order, int &mutate_point);
+    void guided_DFS_visit(vector<node *> &dfsList,
+                          vector<node *> &node_list,
+                          int &return_index,
+                          vector<int> rev_post_order,
+                          int prev_node);
+    void mutated_DFS_visit(vector<node*> &dfsList, 
+                           vector<node*> &node_list, 
+                           int &index, 
+                           int &traversal_index, 
+                           vector<int> rev_post_order, 
+                           int mutate_point);
 
 	//PARENT-CHILDREN
 	void set_parent(node* n) ;
@@ -150,6 +159,7 @@ public:
 	int compute_removed_edge_size(string input_file, vector<int> post_order);
 	vector<int> generate_post_order(string input_file);
 	vector<int> generate_mutated_post_order(string input_file, vector<int> post_order);
+	vector<int> generate_guided_post_order(string input_file, vector<int> post_order);
 	node* get_new_node(node_type t);
     void read_from_gml(string input_file);
 	int output_removed_edge_size();

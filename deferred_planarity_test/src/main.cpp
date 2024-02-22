@@ -21,15 +21,31 @@ int compute_removed_edge_size(string input_file, vector<int> post_order);
 
 vector<int> generate_post_order(string input_file);
 vector<int> generate_mutated_post_order(string input_file, vector<int> post_order);
+vector<int> generate_guided_post_order(string input_file, vector<int> post_order);
 
 
 vector<int> repeated_mutation(string input_file, int k_max) {
+    // generate first post order
+    std::cout << "generate first post order" << std::endl;
     vector<int> state_old = generate_post_order(input_file);
     vector<int> state_new;
     int num_removed_edges;
     for (int k = 0; k < k_max; ++k) {
-        state_new = generate_mutated_post_order(input_file, state_old);
-        num_removed_edges = compute_removed_edge_size(input_file, state_new);
+        // rotate it first
+        std::cout << "cycle:" << k << std::endl;
+        std::cout << "rotate the dfs tree" << std::endl;
+        state_new = generate_guided_post_order(input_file, state_old);
+        // then the next traversal will rotate it back
+        std::cout << "mutate the dfs tree" << std::endl;
+        state_new = generate_mutated_post_order(input_file, state_new);
+        // num_removed_edges = compute_removed_edge_size(input_file, state_new);
+        // first time will rotate the tree
+        std::cout << "rotate the dfs tree" << std::endl;
+        state_new = generate_guided_post_order(input_file, state_new);
+        // second time will rotate back the rotated tree
+        std::cout << "print the mutated tree again" << std::endl;
+        state_new = generate_guided_post_order(input_file, state_new);
+        std::cout << std::endl;
     }
     return state_new;
 }
@@ -62,8 +78,8 @@ int main(int argc, char* argv[]) {
     int k_max = std::stoi(argv[2]);
 
     // generate order here
-    // vector<int> post_order = repeated_mutation(input_file, k_max);
-    test_correctness(input_file);
+    vector<int> post_order = repeated_mutation(input_file, k_max);
+    // test_correctness(input_file);
 
     // // print final order and number of edges
     // // print post_order
