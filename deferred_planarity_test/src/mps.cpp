@@ -85,7 +85,7 @@ maximal_planar_subgraph_finder::guidedPostOrderTraversal(vector<int> post_order)
 // take in a post-order argument then traces the graph in the same order
 // return is by reference via _post_order_list
 void
-maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order) {
+maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order, int mutate_point) {
 	node::init_mark();
 
     vector<int> rev_post_order;
@@ -95,26 +95,12 @@ maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order
 	int postOrderID = 0;
     int traversal_index = 0;
 
-    // introduce random selection
-    std::random_device rd;
-    std::mt19937 rng(rd());
-    // Define the range [0, n]
+        // Define the range [0, n]
     int n = _node_list.size() - 1;  // Change 'n' to your desired upper bound
-    // Create a uniform distribution for the range [0, n]
-    std::uniform_int_distribution<int> distribution(0, n);
-    // Generate a random number between 0 and n (inclusive)
-    int mutate_point = distribution(rng);
-    // std::cout << "the mutate point: " << mutate_point << std::endl;
 
     // set loop variables
     int start = rev_post_order[0];
     int i = start;
-
-    // if mutate_point = 0
-    if (mutate_point == 0) {
-        // generate another point
-        start = distribution(rng); 
-    }
 
 
     int end_condition = _node_list.size();

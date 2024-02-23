@@ -158,7 +158,7 @@ public:
 	int find_mps(string input_file);
 	int compute_removed_edge_size(string input_file, vector<int> post_order);
 	vector<int> generate_post_order(string input_file);
-	vector<int> generate_mutated_post_order(string input_file, vector<int> post_order);
+	vector<int> generate_mutated_post_order(string input_file, vector<int> post_order, int mutate_point);
 	vector<int> generate_guided_post_order(string input_file, vector<int> post_order);
 	node* get_new_node(node_type t);
     void read_from_gml(string input_file);
@@ -166,7 +166,7 @@ public:
     vector<int> return_post_order();
 	void postOrderTraversal();
 	void guidedPostOrderTraversal(vector<int> post_order);
-	void mutatedPostOrderTraversal(vector<int> post_order);
+	void mutatedPostOrderTraversal(vector<int> post_order, int mutate_point);
     // void set_post_order(vector<int> post_order);
     void print_post_order();
 	void sort_adj_list();

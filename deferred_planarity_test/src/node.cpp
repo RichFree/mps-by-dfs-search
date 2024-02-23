@@ -5,6 +5,7 @@
 #include "mps.h"
 
 // #define DEBUG
+#define DEBUG_MUTATION
 
 //-----------------------------------------------------------------------------------
 // CONSTRUCTOR
@@ -165,6 +166,14 @@ void node::mutated_DFS_visit(vector<node*> &dfsList,
         std::mt19937 rng(rd());
         // Use std::shuffle to shuffle the elements in the vector
         std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
+
+        #ifdef DEBUG_MUTATION
+        std::cout << "current node:" << this->node_id() << std::endl;
+        for (int i = 0; i < neighbor_list.size(); ++i) {
+            std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
+        }
+        std::cout << std::endl;
+        #endif
     } 
 
     // increment traversal index after checking

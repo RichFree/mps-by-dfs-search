@@ -19,32 +19,41 @@ using namespace std;
 
 int compute_removed_edge_size(string input_file, vector<int> post_order);
 
+// these functions are defined in mps_test.cpp
+// but their signatures are not in mps.h, hence they are declared here
 vector<int> generate_post_order(string input_file);
-vector<int> generate_mutated_post_order(string input_file, vector<int> post_order);
+vector<int> generate_mutated_post_order(string input_file, vector<int> post_order, int mutate_point);
 vector<int> generate_guided_post_order(string input_file, vector<int> post_order);
 
+void vector_printer(vector<int> state) {
+    for (int i = 0; i < state.size(); ++i) {
+        std::cout << state[i] << ",";
+    }
+    std::cout << std::endl;
+}
 
-vector<int> repeated_mutation(string input_file, int k_max) {
+
+vector<int> repeated_mutation(string input_file, int k_max, int mutate_point) {
     // generate first post order
     std::cout << "generate first post order" << std::endl;
     vector<int> state_old = generate_post_order(input_file);
     vector<int> state_new;
-    int num_removed_edges;
+
     for (int k = 0; k < k_max; ++k) {
-        // rotate it first
         std::cout << "cycle:" << k << std::endl;
-        std::cout << "rotate the dfs tree" << std::endl;
-        state_new = generate_guided_post_order(input_file, state_old);
-        // then the next traversal will rotate it back
-        std::cout << "mutate the dfs tree" << std::endl;
-        state_new = generate_mutated_post_order(input_file, state_new);
-        // num_removed_edges = compute_removed_edge_size(input_file, state_new);
-        // first time will rotate the tree
-        std::cout << "rotate the dfs tree" << std::endl;
+
+        vector_printer(state_old);
+        
+        
+        // mutation produces rotated view
+        state_new = generate_mutated_post_order(input_file, state_old, mutate_point);
+        vector_printer(state_new);
+
+        // another round of guided post order gives canonical representation
         state_new = generate_guided_post_order(input_file, state_new);
-        // second time will rotate back the rotated tree
-        std::cout << "print the mutated tree again" << std::endl;
-        state_new = generate_guided_post_order(input_file, state_new);
+        vector_printer(state_new);
+
+
         std::cout << std::endl;
     }
     return state_new;
@@ -76,9 +85,10 @@ int get_graph_size(string input_file) {
 int main(int argc, char* argv[]) {
     string input_file = argv[1];
     int k_max = std::stoi(argv[2]);
+    int mutate_point = std::stoi(argv[3]);
 
     // generate order here
-    vector<int> post_order = repeated_mutation(input_file, k_max);
+    vector<int> post_order = repeated_mutation(input_file, k_max, mutate_point);
     // test_correctness(input_file);
 
     // // print final order and number of edges

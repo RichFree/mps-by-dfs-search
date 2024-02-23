@@ -5,7 +5,7 @@
 #include "mps.h"
 #include <ogdf/fileformats/GraphIO.h>
 
-#define DEBUG
+// #define DEBUG
 
 //-----------------------------------------------------------------------------------
 // Finding MPS
@@ -28,9 +28,9 @@ vector<int> generate_post_order(string input_file) {
     return m.generate_post_order(input_file);
 }
 
-vector<int> generate_mutated_post_order(string input_file, vector<int> post_order) {
+vector<int> generate_mutated_post_order(string input_file, vector<int> post_order, int mutate_point) {
     maximal_planar_subgraph_finder m;
-    return m.generate_mutated_post_order(input_file, post_order);
+    return m.generate_mutated_post_order(input_file, post_order, mutate_point);
 }
 
 vector<int> generate_guided_post_order(string input_file, vector<int> post_order) {
@@ -68,9 +68,9 @@ vector<int> maximal_planar_subgraph_finder::generate_post_order(string input_fil
 }
 
 // result of this will be used as input to "compute_removed_edge_size"
-vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(string input_file, vector<int> post_order) {
+vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(string input_file, vector<int> post_order, int mutate_point) {
     read_from_gml(input_file);
-    mutatedPostOrderTraversal(post_order);
+    mutatedPostOrderTraversal(post_order, mutate_point);
 
     #ifdef DEBUG
     std::cout << "mutated post order traversal" << std::endl;
@@ -85,10 +85,10 @@ vector<int> maximal_planar_subgraph_finder::generate_guided_post_order(string in
     read_from_gml(input_file);
     guidedPostOrderTraversal(post_order);
 
-    #ifdef DEBUG
-    std::cout << "guided post order traversal" << std::endl;
-    print_post_order();
-    #endif
+    // #ifdef DEBUG
+    // std::cout << "guided post order traversal" << std::endl;
+    // print_post_order();
+    // #endif
 
     return return_post_order();
 }
