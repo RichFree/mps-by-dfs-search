@@ -10,7 +10,7 @@ DEPS := $(OBJS:.o=.d)
 # compiler and flags
 CXX := g++
 CPPFLAGS := -Iinclude -MMD -MP
-CXXFLAGS := -std=c++14 -Wall 
+CXXFLAGS := -std=c++14 -Wall
 LDFLAGS := -lOGDF
 
 build: $(TARGET)
@@ -31,4 +31,4 @@ $(BIN_DIR) $(OBJ_DIR):
 
 .PHONY: clean
 clean:
-	rm -r $(BIN_DIR) $(OBJ_DIR)
+	rm -r $(OBJ_DIR)

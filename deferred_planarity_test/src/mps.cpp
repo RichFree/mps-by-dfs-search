@@ -3,7 +3,6 @@
 //-----------------------------------------------------------------------------------
 
 #include "mps.h"
-#include <iterator>
 
 // #define DEBUG
 
@@ -12,8 +11,8 @@ maximal_planar_subgraph_finder::maximal_planar_subgraph_finder() {}
 
 //Destructor
 maximal_planar_subgraph_finder::~maximal_planar_subgraph_finder() {
-	for (int i = 0; i < _node_list.size(); ++i) delete _node_list[i];
-	for (int i = 0; i < _new_node_list.size(); ++i) delete _new_node_list[i];
+	for (size_t i = 0; i < _node_list.size(); ++i) delete _node_list[i];
+	for (size_t i = 0; i < _new_node_list.size(); ++i) delete _new_node_list[i];
 }
 
 node* 
@@ -25,7 +24,9 @@ maximal_planar_subgraph_finder::get_new_node(node_type t) {
 vector<int>
 maximal_planar_subgraph_finder::return_post_order() {
     vector<int> post_order;
-    for (int i = 0; i < _post_order_list.size(); ++i) {
+    // we have arg number of elements
+    post_order.reserve(_post_order_list.size()); // reserve for decreased reallocation
+    for (size_t i = 0; i < _post_order_list.size(); ++i) {
         post_order.push_back(_post_order_list[i]->node_id());
     }
     return post_order;
@@ -37,7 +38,7 @@ maximal_planar_subgraph_finder::postOrderTraversal() {
 	node::init_mark();
     // always start with node 0
 	int postOrderID = 0;
-	for (int i = 0; i < _node_list.size(); ++i) {
+	for (size_t i = 0; i < _node_list.size(); ++i) {
 		if (!_node_list[i]->is_marked()) {
 			_node_list[i]->DFS_visit(_post_order_list, postOrderID);
 		}
@@ -49,33 +50,49 @@ maximal_planar_subgraph_finder::postOrderTraversal() {
 // take in a post-order argument then traces the graph in the same order
 // return is by reference via _post_order_list
 void 
-maximal_planar_subgraph_finder::guidedPostOrderTraversal(vector<int> post_order) {
+maximal_planar_subgraph_finder::guidedPostOrderTraversal(const vector<int> &post_order) {
 	node::init_mark();
 
-    vector<int> rev_post_order;
-    for (int i = post_order.size() - 1; i >= 0; --i) {
-        rev_post_order.push_back(post_order[i]);
-    }
-	int postOrderID = 0;
+    // // implementation 1: pass reversed vector
+    // vector<int> rev_post_order;
+    // for (int i = post_order.size() - 1; i >= 0; --i) {
+    //    rev_post_order.push_back(post_order[i]);
+    // }
+    // int start = rev_post_order[0];
 
+
+    // implementation 2: use unordered_map to map node_id to position in reversed post_order
+    unordered_map<int, int> node_id_to_pos;
+    node_id_to_pos.reserve(post_order.size());
+    int j = 0;
+    // we flip the post_order vector around
+    for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
+        node_id_to_pos[post_order[i]] = j++;
+    }
+
+	int postOrderID = 0;
     int end_condition = _node_list.size();
-    int start = rev_post_order[0];
+    // we start from the end of the post_order, which is the root node
+    int start = post_order[post_order.size() - 1];
     int i = start;
-    
-    int prev_node = INT_MAX;
+
+    // reserve for _post_order_list to decrease reallocation
+    _post_order_list.reserve(_node_list.size());
+
+
     while (true)
     {
         if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
         {
             if (!_node_list[i]->is_marked())
             {
-                _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, prev_node);
+                _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, node_id_to_pos);
             }
             break;
         }
         if (!_node_list[i]->is_marked())
         {
-            _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, rev_post_order, prev_node);
+            _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, node_id_to_pos);
         }
         i = (i + 1) % end_condition;
     }
@@ -85,22 +102,49 @@ maximal_planar_subgraph_finder::guidedPostOrderTraversal(vector<int> post_order)
 // take in a post-order argument then traces the graph in the same order
 // return is by reference via _post_order_list
 void
-maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order, int mutate_point) {
+maximal_planar_subgraph_finder::mutatedPostOrderTraversal(const vector<int> &post_order, int mutate_point) {
 	node::init_mark();
 
-    vector<int> rev_post_order;
-    for (int i = post_order.size() - 1; i >= 0; --i) {
-        rev_post_order.push_back(post_order[i]);
+    // // implementation 1: use vector
+    // vector<int> rev_post_order;
+    // for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
+    //     rev_post_order.push_back(post_order[i]);
+    // }
+
+    // implementation 2: use unordered_map to map node_id to position in reversed post_order
+    unordered_map<int, int> node_id_to_pos;
+    node_id_to_pos.reserve(post_order.size());
+    int j = 0;
+    // we flip the post_order vector around
+    for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
+        node_id_to_pos[post_order[i]] = j++;
     }
+
 	int postOrderID = 0;
     int traversal_index = 0;
 
-        // Define the range [0, n]
-    int n = _node_list.size() - 1;  // Change 'n' to your desired upper bound
+    // setup random rng function
+    std::random_device rd;
+    std::mt19937 rng{rd()};
+
+
+    int start = 0;
+    // if we mutate first node, we will select a random starting node
+    if (mutate_point == 0) {
+        int first_value = 0;
+        int last_value = post_order.size() - 1;  
+        std::uniform_int_distribution<> dist{first_value, last_value}; 
+        start = post_order[dist(rng)];
+    // if we don't mutate first, we just use the root node of the post_order
+    } else {
+        start = post_order[post_order.size() - 1];
+    }
 
     // set loop variables
-    int start = rev_post_order[0];
     int i = start;
+
+    // reserve for _post_order_list to decrease reallocation
+    _post_order_list.reserve(_node_list.size());
 
 
     int end_condition = _node_list.size();
@@ -112,13 +156,13 @@ maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order
         {
             if (!_node_list[i]->is_marked())
             {
-                _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, rev_post_order, mutate_point);
+                _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, node_id_to_pos, mutate_point, rng);
             }
             break;
         }
         if (!_node_list[i]->is_marked())
         {
-            _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, rev_post_order, mutate_point);
+            _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, node_id_to_pos, mutate_point, rng);
         }
         i = (i + 1) % end_condition;
     }
@@ -127,7 +171,7 @@ maximal_planar_subgraph_finder::mutatedPostOrderTraversal(vector<int> post_order
 void
 maximal_planar_subgraph_finder::print_post_order() {
     int current_index;
-    for (int i = 0; i < _post_order_list.size(); ++i) {
+    for (size_t i = 0; i < _post_order_list.size(); ++i) {
         current_index = _post_order_list[i]->node_id();
         std::cout << current_index << ",";
     }
@@ -149,12 +193,12 @@ void
 maximal_planar_subgraph_finder::sort_adj_list() {
 	vector<vector<node*> > vecList;
 	vecList.resize(_post_order_list.size());
-	for (int i = 0; i < _post_order_list.size(); ++i) {
+	for (size_t i = 0; i < _post_order_list.size(); ++i) {
 		for (int j = 0; j < _post_order_list[i]->degree(); ++j) {
 			vecList[_post_order_list[i]->adj(j)->post_order_index()].push_back(_post_order_list[i]);
 		}
 	}
-	for (int i = 0; i < _post_order_list.size(); ++i) {
+	for (size_t i = 0; i < _post_order_list.size(); ++i) {
 		_post_order_list[i]->set_adj_list(vecList[i]);
 	}
 }
@@ -163,20 +207,20 @@ maximal_planar_subgraph_finder::sort_adj_list() {
 //Order the edges properly.
 void 
 maximal_planar_subgraph_finder::determine_edges() {
-	for (int i = 0; i < _post_order_list.size(); ++i) {
+	for (size_t i = 0; i < _post_order_list.size(); ++i) {
 		if (_post_order_list[i]->parent() == 0) continue;
 		_post_order_list[i]->set_1st_label(_post_order_list[i]->parent()->post_order_index());
 		_edge_list.push_back(pair<node*, node*> (_post_order_list[i]->parent(), _post_order_list[i]));
 	}
-	for (int i = 0; i < _post_order_list.size(); ++i) {
+	for (size_t i = 0; i < _post_order_list.size(); ++i) {
 		for (int j = 0; j < _post_order_list[i]->degree(); ++j) {
-			if (_post_order_list[i]->adj(j)->post_order_index() > i) break;
-			if (_post_order_list[i]->adj(j)->get_1st_label() == i) continue;
+			if (_post_order_list[i]->adj(j)->post_order_index() > static_cast<int>(i)) break;
+			if (_post_order_list[i]->adj(j)->get_1st_label() == static_cast<int>(i)) continue;
 			_back_edge_list.push_back(pair<node*, node*> (_post_order_list[i], _post_order_list[i]->adj(j)));
 			_is_back_edge_eliminate.push_back(false);
 		}
 	}
-	for (int i = 0; i < _post_order_list.size(); ++i) {
+	for (size_t i = 0; i < _post_order_list.size(); ++i) {
 		_post_order_list[i]->set_1st_label(INT_MAX);
 	}
 }
@@ -186,7 +230,7 @@ void
 maximal_planar_subgraph_finder::back_edge_traversal() {
 	node* i_node = 0;
 	node* current_node = 0;
-	for (int i = 0; i < _back_edge_list.size(); ++i) {
+	for (size_t i = 0; i < _back_edge_list.size(); ++i) {
 		current_node = _back_edge_list[i].second;
 		i_node = _back_edge_list[i].first;
 		if (!back_edge_traversal(current_node, i_node->post_order_index())) _is_back_edge_eliminate[i] = true;
@@ -463,7 +507,7 @@ maximal_planar_subgraph_finder::trim(node* u) {
 	new_AE_root = get_new_node(AE_VIRTUAL_ROOT);
 	new_AE_root->init_AE(node_list[0]);
 	//Eliminate the children other than the path.
-	for (int i = 1; i < node_list.size(); ++i) {
+	for (size_t i = 1; i < node_list.size(); ++i) {
 		for (int j = 0; j < node_list[i]->child_num(); ++j) {
 			if (node_list[i]->child(j) != node_list[i-1]) eliminate(node_list[i]->child(j));
 		}
@@ -473,7 +517,7 @@ maximal_planar_subgraph_finder::trim(node* u) {
 	else {
 		node_list[0]->set_to_boundary_path(down, node_list[1]);
 		node_list[node_list.size()-1]->set_to_boundary_path(up, node_list[node_list.size()-2]);
-	    for (int i = 1; i < node_list.size()-1; ++i) {
+	    for (size_t i = 1; i < node_list.size()-1; ++i) {
 			node_list[i]->set_to_boundary_path(node_list[i-1], node_list[i+1]);
 		}
 	}
@@ -481,7 +525,7 @@ maximal_planar_subgraph_finder::trim(node* u) {
 	up_next = up->get_next(node_list[node_list.size()-1]);
 	down_next = down->get_next(node_list[0]);
 	//Unfold the c-nodes in the node_list.
-	for (int i = 0; i < node_list.size(); ++i) {
+	for (size_t i = 0; i < node_list.size(); ++i) {
 		if (node_list[i]->type() == C_NODE) c_node_extension(node_list[i]);
 	}
 	//Return the new boundary.
@@ -655,7 +699,7 @@ maximal_planar_subgraph_finder::parallel_search_sentinel(node* n0, node* n0_prev
 	}
 
 	//If the c-node found is top-tier, then assign all the traversed node a pointer to c-node.
-	for (int i = 0; i < traversed.size(); ++i) traversed[i]->set_c_node(c);
+	for (size_t i = 0; i < traversed.size(); ++i) traversed[i]->set_c_node(c);
 	return pair<node*, node*>((node*)0, (node*)0);
 }
 
@@ -703,7 +747,7 @@ pair<node*, node*> maximal_planar_subgraph_finder::count_sentinel_elimination(pa
 node*
 maximal_planar_subgraph_finder::construct(node* u) {
 	//Basic works.
-	int i_label = u->get_1st_label();
+	// int i_label = u->get_1st_label(); // unused
 	node* node_i = _post_order_list[u->get_1st_label()];
 	parenting_labeling_shaving(u, node_i);
 
@@ -751,7 +795,7 @@ maximal_planar_subgraph_finder::construct(node* u) {
 node* 
 maximal_planar_subgraph_finder::construct(node* c, node* p) {
 	//Basic works.
-	int i_label = c->get_1st_label();
+	// int i_label = c->get_1st_label(); // unused var
 	node* node_i = _post_order_list[c->get_1st_label()];
 	parenting_labeling_shaving(p, node_i);
 	//note: Now, c must have exactly two children left, and c has a parent-link to p, p has achild link to c, too. 
@@ -822,11 +866,11 @@ maximal_planar_subgraph_finder::parenting_labeling_shaving(node* u, node* node_i
 		u_i_path.push_back(u_i_path[u_i_path.size()-1]->parent());
 		if (u_i_path[u_i_path.size()-1] == node_i) break;
 	}
-	for (int i = 0; i < u_i_path.size()-2; ++i) {
+	for (size_t i = 0; i < u_i_path.size()-2; ++i) {
 		u_i_path[i]->add_child(u_i_path[i+1]);
 		u_i_path[i+1]->set_parent(u_i_path[i]);
 	}
-	for (int i = 0; i < u_i_path.size()-2; ++i) {
+	for (size_t i = 0; i < u_i_path.size()-2; ++i) {
 		for (int j = 0; j < u_i_path[i+1]->child_num(); ++j) {
 			if (u_i_path[i+1]->child(j) == u_i_path[i]) {
 				u_i_path[i+1]->remove_child(j);

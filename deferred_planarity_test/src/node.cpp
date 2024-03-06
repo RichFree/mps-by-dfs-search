@@ -5,7 +5,7 @@
 #include "mps.h"
 
 // #define DEBUG
-#define DEBUG_MUTATION
+// #define DEBUG_MUTATION
 
 //-----------------------------------------------------------------------------------
 // CONSTRUCTOR
@@ -37,7 +37,7 @@ void node::set_post_order_index(int i) {_post_order_index = i;}
 //Only used when consturcting c-node
 //The first node calling this function would not be labeled.
 void node::recursively_labeling() {		
-	for (int i = 0; i < _children.size(); ++i) {
+	for (size_t i = 0; i < _children.size(); ++i) {
 		_children[i]->_label.second = ARTIFICIAL_EDGE;
 		_children[i]->recursively_labeling();
 	} 
@@ -58,7 +58,7 @@ void node::set_adj_list(vector<node*> vec) {_adj_list = vec;}
 
 void node::DFS_visit(vector<node*> &dfsList, int &index) {
 	mark();
-	for (int i = 0; i < _adj_list.size(); ++i) {
+	for (size_t i = 0; i < _adj_list.size(); ++i) {
 		if (!_adj_list[i]->is_marked()) {
 			_adj_list[i]->_parent = this;
 			_adj_list[i]->DFS_visit(dfsList, index);
@@ -70,11 +70,19 @@ void node::DFS_visit(vector<node*> &dfsList, int &index) {
 }
 
 
+bool node::sortByOrder(const std::unordered_map<int, int>& node_id_to_pos, node* a, node* b) {
+    auto iter_a = node_id_to_pos.find(a->node_id());
+    auto iter_b = node_id_to_pos.find(b->node_id());
+
+    // second yields the position
+    return iter_a->second < iter_b->second;
+}
+
+
 void node::guided_DFS_visit(vector<node *> &dfsList, 
-                            vector<node *> &node_list, 
+                            const vector<node *> &node_list, 
                             int &return_index, 
-                            vector<int> rev_post_order,
-                            int prev_node)
+                            const unordered_map<int, int> &node_id_to_pos)
 {
 
 	mark();
@@ -82,28 +90,35 @@ void node::guided_DFS_visit(vector<node *> &dfsList,
     // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
     // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // create an unordered set to efficiently check for presence of an element
-    std::unordered_set<int> neighbor_set; 
-    for (int i = 0; i < _adj_list.size(); ++i) {
-        neighbor_set.insert(_adj_list[i]->node_id());
-    }
-    // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
-    // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
-    // it is ok if the neighbor was already visited before, 
-    // it would've been marked and will be subsequently ignored
-    vector<node *> neighbor_list;
-    for (int i = 0; i < rev_post_order.size(); ++i) {
-        if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
-            // only add if newly encountered
-            if (!node_list[rev_post_order[i]]->is_marked()) {
-                neighbor_list.push_back(node_list[rev_post_order[i]]);
-            }
-        }
-    }
+    // implementation 1: loop through all elements
+    // // create an unordered set to efficiently check for presence of an element
+    // std::unordered_set<int> neighbor_set; 
+    // for (int i = 0; i < _adj_list.size(); ++i) {
+    //     neighbor_set.insert(_adj_list[i]->node_id());
+    // }
+    // // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
+    // // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
+    // // it is ok if the neighbor was already visited before, 
+    // // it would've been marked and will be subsequently ignored
+    // vector<node *> neighbor_list;
+    // for (int i = 0; i < rev_post_order.size(); ++i) {
+    //     if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
+    //         // only add if newly encountered
+    //         if (!node_list[rev_post_order[i]]->is_marked()) {
+    //             neighbor_list.push_back(node_list[rev_post_order[i]]);
+    //         }
+    //     }
+    // }
+
+    // implementation 2: sort elements of _adj_list
+    vector<node*> neighbor_list = _adj_list; 
+    std::sort(neighbor_list.begin(), neighbor_list.end(), [this, &node_id_to_pos](node* a, node* b) {
+        return sortByOrder(node_id_to_pos, a, b);
+    });
+
 
     #ifdef DEBUG
     std::cout << "current node:" << this->node_id() << std::endl;
-    std::cout << "prev node:" << prev_node << std::endl;
     for (int i = 0; i < neighbor_list.size(); ++i) {
         std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
     }
@@ -112,10 +127,10 @@ void node::guided_DFS_visit(vector<node *> &dfsList,
 
 
 	
-	for (int i = 0; i < neighbor_list.size(); ++i) {
+	for (size_t i = 0; i < neighbor_list.size(); ++i) {
 		if (!neighbor_list[i]->is_marked()) {
 			neighbor_list[i]->_parent = this;
-			neighbor_list[i]->guided_DFS_visit(dfsList, node_list, return_index, rev_post_order, this->node_id());
+			neighbor_list[i]->guided_DFS_visit(dfsList, node_list, return_index, node_id_to_pos);
 		}
 	}
 
@@ -124,13 +139,13 @@ void node::guided_DFS_visit(vector<node *> &dfsList,
 	++return_index;
 }
 
-
-void node::mutated_DFS_visit(vector<node*> &dfsList, 
-                             vector<node*> &node_list, 
-                             int &return_index, 
-                             int &traversal_index, 
-                             vector<int> rev_post_order, 
-                             int mutate_point)
+void node::mutated_DFS_visit(vector<node *> &dfsList,
+                             const vector<node *> &node_list,
+                             int &return_index,
+                             int &traversal_index,
+                             const unordered_map<int, int> &node_id_to_pos,
+                             int mutate_point,
+                             mt19937 rng)
 {
 
     // mark current node
@@ -139,53 +154,57 @@ void node::mutated_DFS_visit(vector<node*> &dfsList,
     // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
     // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // create an unordered set to efficiently check for presence of an element
-    std::unordered_set<int> neighbor_set; 
-    for (int i = 0; i < _adj_list.size(); ++i) {
-        neighbor_set.insert(_adj_list[i]->node_id());
-    }
-    // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
-    // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
-    // it is ok if the neighbor was already visited before, 
-    // it would've been marked and will be subsequently ignored
-    vector<node *> neighbor_list;
-    for (int i = 0; i < rev_post_order.size(); ++i) {
-        if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
-            neighbor_list.push_back(node_list[rev_post_order[i]]);
-        }
-    }
+    // // implementation 1: naively check by running through all elements of rev_post_order
+    // // create an unordered set to efficiently check for presence of an element
+    // std::unordered_set<int> neighbor_set; 
+    // for (size_t i = 0; i < _adj_list.size(); ++i) {
+    //     neighbor_set.insert(_adj_list[i]->node_id());
+    // }
+    // // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
+    // // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
+    // // it is ok if the neighbor was already visited before, 
+    // // it would've been marked and will be subsequently ignored
+    // vector<node *> neighbor_list;
+    // for (size_t i = 0; i < rev_post_order.size(); ++i) {
+    //     if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
+    //         neighbor_list.push_back(node_list[rev_post_order[i]]);
+    //     }
+    // }
 
-    
-
-    // since we increment the index before this line, the current index is "index - 1"
+    vector<node*> neighbor_list = _adj_list; 
     // if the current index matches the mutate_point, then we know this is the cycle to mutate
     if (traversal_index == mutate_point) {
-        // Create a random number generator and seed it
-        // std::cout << "mutated at index: " << index - 1<< "and at mutate point: " << mutate_point << std::endl;
-        std::random_device rd;
-        std::mt19937 rng(rd());
-        // Use std::shuffle to shuffle the elements in the vector
+        // we shuffle the neighbor list
         std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
+    // otherwise just sort based on the order set by node_id_to_pos, which is
+    // set by the reversed post_order
+    } else {
+        std::sort(neighbor_list.begin(), neighbor_list.end(), [this, &node_id_to_pos](node *a, node *b)
+                  { return sortByOrder(node_id_to_pos, a, b); });
+    }
 
-        #ifdef DEBUG_MUTATION
-        std::cout << "current node:" << this->node_id() << std::endl;
-        for (int i = 0; i < neighbor_list.size(); ++i) {
-            std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
-        }
-        std::cout << std::endl;
-        #endif
-    } 
 
+
+    #ifdef DEBUG_MUTATION
+    std::cout << "current node:" << this->node_id() << std::endl;
+    for (size_t i = 0; i < neighbor_list.size(); ++i) {
+        std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
+    }
+    std::cout << std::endl;
+    #endif
+
+
+    
     // increment traversal index after checking
     // next node will receive incremented index
     traversal_index++;
     
-    for (int i = 0; i < neighbor_list.size(); ++i)
+    for (size_t i = 0; i < neighbor_list.size(); ++i)
     {
         if (!neighbor_list[i]->is_marked())
         {
             neighbor_list[i]->_parent = this;
-            neighbor_list[i]->mutated_DFS_visit(dfsList, node_list, return_index, traversal_index, rev_post_order, mutate_point);
+            neighbor_list[i]->mutated_DFS_visit(dfsList, node_list, return_index, traversal_index, node_id_to_pos, mutate_point, rng);
         }
     }
 
@@ -213,7 +232,7 @@ void node::remove_child(int i) {
 }
 
 void node::remove_child(node* n) {
-	for (int i = 0; i < _children.size(); ++i) {
+	for (size_t i = 0; i < _children.size(); ++i) {
 	    if (_children[i] == n) {
 			_children[i] = _children[_children.size()-1];
 	        _children.resize(_children.size()-1);
@@ -289,7 +308,7 @@ void node::init_AE(node* u) {
 	if (u->child_num() == 0) return;
 	_children = u->_children;
 	u->clear_children();
-	for (int i = 0; i < _children.size(); ++i) {
+	for (size_t i = 0; i < _children.size(); ++i) {
 		_children[i]->set_parent(this);
 	}
 	set_parent(u);

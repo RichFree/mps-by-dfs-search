@@ -10,9 +10,12 @@
 #include <vector>
 #include <utility>
 #include <climits>
+#include <limits>
 #include <random>
 #include <algorithm>
+#include <unordered_map>
 #include <unordered_set>
+#include <ogdf/fileformats/GraphIO.h>
 
 using namespace std;
 
@@ -57,16 +60,19 @@ public:
 	void set_adj_list(vector<node*> vec);
 	void DFS_visit(vector<node*> &dfsList, int &index);
     void guided_DFS_visit(vector<node *> &dfsList,
-                          vector<node *> &node_list,
+                          const vector<node *> &node_list,
                           int &return_index,
-                          vector<int> rev_post_order,
-                          int prev_node);
-    void mutated_DFS_visit(vector<node*> &dfsList, 
-                           vector<node*> &node_list, 
-                           int &index, 
-                           int &traversal_index, 
-                           vector<int> rev_post_order, 
-                           int mutate_point);
+                          const unordered_map<int, int> &node_id_to_pos);
+    void mutated_DFS_visit(vector<node *> &dfsList,
+                           const vector<node *> &node_list,
+                           int &index,
+                           int &traversal_index,
+                           const unordered_map<int, int> &node_id_to_pos,
+                           int mutate_point,
+                           mt19937 rng);
+
+    // custom comparator function to sort nodes according to order in given vector
+    bool sortByOrder(const unordered_map<int, int>& node_id_to_pos, node* a, node* b); 
 
 	//PARENT-CHILDREN
 	void set_parent(node* n) ;
@@ -155,18 +161,26 @@ class maximal_planar_subgraph_finder
 public:
 	maximal_planar_subgraph_finder();
 	~maximal_planar_subgraph_finder();
-	int find_mps(string input_file);
-	int compute_removed_edge_size(string input_file, vector<int> post_order);
-	vector<int> generate_post_order(string input_file);
-	vector<int> generate_mutated_post_order(string input_file, vector<int> post_order, int mutate_point);
-	vector<int> generate_guided_post_order(string input_file, vector<int> post_order);
+
+    // functions that prepare state
+    void init_from_graph(const ogdf::Graph &G);
+	vector<int> generate_post_order(const ogdf::Graph &G);
+	vector<int> generate_mutated_post_order(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
+	vector<int> generate_guided_post_order(const ogdf::Graph &G, const vector<int> &post_order);
+	void postOrderTraversal();
+	void guidedPostOrderTraversal(const vector<int> &post_order);
+	void mutatedPostOrderTraversal(const vector<int> &post_order, int mutate_point);
+
+    // compute_mps combines functionality to reduce repeating object initialization
+    // the results are returned by modifying mutable reference
+    void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size);
+
+	int find_mps(const ogdf::Graph &G);
+	int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
 	node* get_new_node(node_type t);
-    void read_from_gml(string input_file);
+    void reset_state();
 	int output_removed_edge_size();
     vector<int> return_post_order();
-	void postOrderTraversal();
-	void guidedPostOrderTraversal(vector<int> post_order);
-	void mutatedPostOrderTraversal(vector<int> post_order, int mutate_point);
     // void set_post_order(vector<int> post_order);
     void print_post_order();
 	void sort_adj_list();
@@ -198,4 +212,4 @@ private:
 	vector<node*> _new_node_list; //Newly added nodes.
 };
 
-#endif
+#endif // for MPS_H

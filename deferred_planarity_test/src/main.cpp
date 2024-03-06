@@ -14,68 +14,73 @@
  
 #include <ogdf/fileformats/GraphIO.h>
 #define START_TEMP 100
+// #define TIME
 
 using namespace std;
 
-int compute_removed_edge_size(string input_file, vector<int> post_order);
+int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
 
 // these functions are defined in mps_test.cpp
 // but their signatures are not in mps.h, hence they are declared here
-vector<int> generate_post_order(string input_file);
-vector<int> generate_mutated_post_order(string input_file, vector<int> post_order, int mutate_point);
-vector<int> generate_guided_post_order(string input_file, vector<int> post_order);
+ogdf::Graph read_from_gml(string input_file);
+vector<int> generate_post_order(const ogdf::Graph &G);
+vector<int> generate_mutated_post_order(const ogdf::Graph &G, vector<int> post_order, int mutate_point);
+vector<int> generate_guided_post_order(const ogdf::Graph &G, vector<int> post_order);
+void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size);
 
-void vector_printer(vector<int> state) {
-    for (int i = 0; i < state.size(); ++i) {
+void vector_printer(const vector<int>& state) {
+    for (size_t i = 0; i < state.size(); ++i) {
         std::cout << state[i] << ",";
     }
     std::cout << std::endl;
 }
 
 
-vector<int> repeated_mutation(string input_file, int k_max, int mutate_point) {
+vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     // generate first post order
-    std::cout << "generate first post order" << std::endl;
-    vector<int> state_old = generate_post_order(input_file);
-    vector<int> state_new;
+    // std::cout << "generate first post order" << std::endl;
+    vector<int> old_order = generate_post_order(G);
+    vector_printer(old_order);
+    vector<int> temp_order = old_order;
+    int new_removed_size;
+    int old_removed_size = INT_MAX;
+
+    // prepare random selection
+    std::random_device rd;
+    std::mt19937 gen{rd()}; // seed the generator
+    int first_value = 0;
+    // we want the index of the third last value
+    // at a given traversal index, only the next iteration has the mutated value
+    int last_value = (old_order.size() - 1) - 2;
+    std::uniform_int_distribution<> dist{first_value, last_value}; // set min and max
 
     for (int k = 0; k < k_max; ++k) {
-        std::cout << "cycle:" << k << std::endl;
+        // function compute new post_order and new_removed_size
+        // temp_order and new_removed_size will be updated with new values
 
-        vector_printer(state_old);
-        
-        
-        // mutation produces rotated view
-        state_new = generate_mutated_post_order(input_file, state_old, mutate_point);
-        vector_printer(state_new);
+        #ifdef TIME
+        auto start = std::chrono::high_resolution_clock::now();
+        #endif
+        compute_mps(G, dist(gen), temp_order, new_removed_size);
+        #ifdef TIME
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "compute_mps: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
+        #endif
 
-        // another round of guided post order gives canonical representation
-        state_new = generate_guided_post_order(input_file, state_new);
-        vector_printer(state_new);
-
-
-        std::cout << std::endl;
+        // if there is an improvement
+        // 1. update the removed size to use the new smaller size
+        // 2. update the old_order to be the new_order
+        if (new_removed_size < old_removed_size) {
+            old_removed_size = new_removed_size;
+            old_order = temp_order;
+        // if there is no improvement, we revert the temp_order to the old_order
+        } else {
+            temp_order = old_order;
+        }
     }
-    return state_new;
+    return old_order;
 }
 
-void test_correctness(string input_file) {
-    vector<int> state_old = generate_post_order(input_file);
-    int num_removed_edges;
-    num_removed_edges = compute_removed_edge_size(input_file, state_old);
-}
-
-
-int get_graph_size(string input_file) {
-    ogdf::Graph G;
-
-    // utilize OGDF readGML
-    if (!ogdf::GraphIO::read(G, input_file, ogdf::GraphIO::readGML)) {
-        std::cerr << "Could not read " << input_file << ".gml" << std::endl;
-    }
-
-    return G.numberOfNodes();
-}
 
 //-----------------------------------------------------------------------------------
 // Main function.
@@ -85,18 +90,22 @@ int get_graph_size(string input_file) {
 int main(int argc, char* argv[]) {
     string input_file = argv[1];
     int k_max = std::stoi(argv[2]);
-    int mutate_point = std::stoi(argv[3]);
+
+    const ogdf::Graph G = read_from_gml(input_file);
 
     // generate order here
-    vector<int> post_order = repeated_mutation(input_file, k_max, mutate_point);
-    // test_correctness(input_file);
+    vector<int> post_order = repeated_mutation(G, k_max);
+
+    // test timing of function
+    // test_correctness(G);   
 
     // // print final order and number of edges
-    // // print post_order
-    // std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
-    // std::cout << std::endl;
-    // int removed_edges = compute_removed_edge_size(input_file, post_order);
-    // std::cout << "Number of removed edges: " << removed_edges << std::endl;
+    std::cout << "---" << std::endl;
+    std::cout << "final report" << std::endl;
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
+    std::cout << std::endl;
+    int removed_edges = compute_removed_edge_size(G, post_order);
+    std::cout << "Number of removed edges: " << removed_edges << std::endl;
 
 	return 0;
 }
