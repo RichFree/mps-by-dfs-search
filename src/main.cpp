@@ -11,6 +11,7 @@
 #include <iterator>
 #include <random>
 #include <vector>
+#include <sys/resource.h>
  
 #include <ogdf/fileformats/GraphIO.h>
 #define START_TEMP 100
@@ -93,6 +94,15 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
 
 
 int main(int argc, char* argv[]) {
+    // Define the stack size limit
+    const rlim_t stack_limit = 100 * 1024 * 1024; // 1
+
+    // Set the stack size limit
+    struct rlimit rl;
+    getrlimit(RLIMIT_STACK, &rl);
+    rl.rlim_cur = stack_limit;
+    setrlimit(RLIMIT_STACK, &rl);
+
     string input_file = argv[1];
     int k_max = std::stoi(argv[2]);
 
@@ -102,12 +112,12 @@ int main(int argc, char* argv[]) {
     vector<int> post_order = repeated_mutation(G, k_max);
 
     // // print final order and number of edges
-    std::cout << "---" << std::endl;
-    std::cout << "final report" << std::endl;
+    // std::cout << "---" << std::endl;
+    // std::cout << "final report" << std::endl;
     // std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
     // std::cout << std::endl;
     int removed_edges = compute_removed_edge_size(G, post_order);
-    std::cout << "Number of removed edges: " << removed_edges << std::endl;
+    std::cout << removed_edges << std::endl;
 
 	return 0;
 }
