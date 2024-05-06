@@ -165,11 +165,9 @@ public:
     // functions that prepare state
     void init_from_graph(const ogdf::Graph &G);
 	vector<int> generate_post_order(const ogdf::Graph &G);
-	vector<int> generate_mutated_post_order(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
-	vector<int> generate_guided_post_order(const ogdf::Graph &G, const vector<int> &post_order);
-	void postOrderTraversal();
-	void guidedPostOrderTraversal(const vector<int> &post_order);
-	void mutatedPostOrderTraversal(const vector<int> &post_order, int mutate_point);
+	void post_order_traversal();
+	void guided_post_order_traversal(const vector<int> &post_order);
+	void mutated_post_order_traversal(const vector<int> &post_order, int mutate_point);
 
     // compute_mps combines functionality to reduce repeating object initialization
     // the results are returned by modifying mutable reference
@@ -181,7 +179,6 @@ public:
     void reset_state();
 	int output_removed_edge_size();
     vector<int> return_post_order();
-    // void set_post_order(vector<int> post_order);
     void print_post_order();
 	void sort_adj_list();
 	void determine_edges();

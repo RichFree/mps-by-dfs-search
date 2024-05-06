@@ -34,7 +34,7 @@ maximal_planar_subgraph_finder::return_post_order() {
 
 //Determine the post-order-list by a DFS-traversal.
 void
-maximal_planar_subgraph_finder::postOrderTraversal() {
+maximal_planar_subgraph_finder::post_order_traversal() {
 	node::init_mark();
     // always start with node 0
 	int postOrderID = 0;
@@ -50,18 +50,10 @@ maximal_planar_subgraph_finder::postOrderTraversal() {
 // take in a post-order argument then traces the graph in the same order
 // return is by reference via _post_order_list
 void 
-maximal_planar_subgraph_finder::guidedPostOrderTraversal(const vector<int> &post_order) {
+maximal_planar_subgraph_finder::guided_post_order_traversal(const vector<int> &post_order) {
 	node::init_mark();
 
-    // // implementation 1: pass reversed vector
-    // vector<int> rev_post_order;
-    // for (int i = post_order.size() - 1; i >= 0; --i) {
-    //    rev_post_order.push_back(post_order[i]);
-    // }
-    // int start = rev_post_order[0];
-
-
-    // implementation 2: use unordered_map to map node_id to position in reversed post_order
+    // use unordered_map to map node_id to position in reversed post_order
     unordered_map<int, int> node_id_to_pos;
     node_id_to_pos.reserve(post_order.size());
     int j = 0;
@@ -102,16 +94,10 @@ maximal_planar_subgraph_finder::guidedPostOrderTraversal(const vector<int> &post
 // take in a post-order argument then traces the graph in the same order
 // return is by reference via _post_order_list
 void
-maximal_planar_subgraph_finder::mutatedPostOrderTraversal(const vector<int> &post_order, int mutate_point) {
+maximal_planar_subgraph_finder::mutated_post_order_traversal(const vector<int> &post_order, int mutate_point) {
 	node::init_mark();
 
-    // // implementation 1: use vector
-    // vector<int> rev_post_order;
-    // for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
-    //     rev_post_order.push_back(post_order[i]);
-    // }
-
-    // implementation 2: use unordered_map to map node_id to position in reversed post_order
+    // implementation: use unordered_map to map node_id to position in reversed post_order
     unordered_map<int, int> node_id_to_pos;
     node_id_to_pos.reserve(post_order.size());
     int j = 0;

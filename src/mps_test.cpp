@@ -57,7 +57,7 @@ void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order
 // original maximal planar subgraph implementation without additional features
 int maximal_planar_subgraph_finder::find_mps(const ogdf::Graph &G) {
     init_from_graph(G);
-	postOrderTraversal();
+	post_order_traversal();
 	sort_adj_list();
 	determine_edges();
 	back_edge_traversal();
@@ -66,7 +66,7 @@ int maximal_planar_subgraph_finder::find_mps(const ogdf::Graph &G) {
 
 vector<int> maximal_planar_subgraph_finder::generate_post_order(const ogdf::Graph &G) {
     init_from_graph(G);
-    postOrderTraversal();
+    post_order_traversal();
     return return_post_order();
 }
 
@@ -74,9 +74,7 @@ vector<int> maximal_planar_subgraph_finder::generate_post_order(const ogdf::Grap
 int maximal_planar_subgraph_finder::compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order) {
     // read_from_gml
 	init_from_graph(G);
-
-    // guidedPostOrderTraversal
-    guidedPostOrderTraversal(post_order);
+    guided_post_order_traversal(post_order);
 	sort_adj_list();
  	determine_edges();
  	back_edge_traversal();
@@ -93,7 +91,7 @@ void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutat
     // part 1:
     // we first generate a new mutated order, and then compute the removed edge size for that
     init_from_graph(G);
-    mutatedPostOrderTraversal(post_order, mutate_point);
+    mutated_post_order_traversal(post_order, mutate_point);
 	sort_adj_list();
 	determine_edges();
     back_edge_traversal();
@@ -101,11 +99,11 @@ void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutat
 
     // part 2:
     // now we get the canonical representation of the post order
-    // we run guidedPostOrderTraversal on the temp_post_order to rotate it back to the canonical representation
+    // we run guided_post_order_traversal on the temp_post_order to rotate it back to the canonical representation
     vector<int> temp_post_order = return_post_order(); 
     reset_state(); // clear the _post_order_list
     // perform guided Post Order Traversal to flip the tree
-    guidedPostOrderTraversal(temp_post_order);
+    guided_post_order_traversal(temp_post_order);
     post_order = return_post_order();
 }
 

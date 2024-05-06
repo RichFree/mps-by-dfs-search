@@ -90,41 +90,11 @@ void node::guided_DFS_visit(vector<node *> &dfsList,
     // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
     // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // implementation 1: loop through all elements
-    // // create an unordered set to efficiently check for presence of an element
-    // std::unordered_set<int> neighbor_set; 
-    // for (int i = 0; i < _adj_list.size(); ++i) {
-    //     neighbor_set.insert(_adj_list[i]->node_id());
-    // }
-    // // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
-    // // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
-    // // it is ok if the neighbor was already visited before, 
-    // // it would've been marked and will be subsequently ignored
-    // vector<node *> neighbor_list;
-    // for (int i = 0; i < rev_post_order.size(); ++i) {
-    //     if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
-    //         // only add if newly encountered
-    //         if (!node_list[rev_post_order[i]]->is_marked()) {
-    //             neighbor_list.push_back(node_list[rev_post_order[i]]);
-    //         }
-    //     }
-    // }
-
-    // implementation 2: sort elements of _adj_list
+    // sort elements of _adj_list using sortByOrder
     vector<node*> neighbor_list = _adj_list; 
     std::sort(neighbor_list.begin(), neighbor_list.end(), [this, &node_id_to_pos](node* a, node* b) {
         return sortByOrder(node_id_to_pos, a, b);
     });
-
-
-    #ifdef DEBUG
-    std::cout << "current node:" << this->node_id() << std::endl;
-    for (int i = 0; i < neighbor_list.size(); ++i) {
-        std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
-    }
-    std::cout << std::endl;
-    #endif
-
 
 	
 	for (size_t i = 0; i < neighbor_list.size(); ++i) {
@@ -154,26 +124,10 @@ void node::mutated_DFS_visit(vector<node *> &dfsList,
     // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
     // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // // implementation 1: naively check by running through all elements of rev_post_order
-    // // create an unordered set to efficiently check for presence of an element
-    // std::unordered_set<int> neighbor_set; 
-    // for (size_t i = 0; i < _adj_list.size(); ++i) {
-    //     neighbor_set.insert(_adj_list[i]->node_id());
-    // }
-    // // when an element in rev_post_order is found in neighbor_set, we add that to neighbor_list
-    // // this produces a neighbor_list that follows the order by which they occur in the rev_post_order
-    // // it is ok if the neighbor was already visited before, 
-    // // it would've been marked and will be subsequently ignored
-    // vector<node *> neighbor_list;
-    // for (size_t i = 0; i < rev_post_order.size(); ++i) {
-    //     if (neighbor_set.find(rev_post_order[i]) != neighbor_set.end()) {
-    //         neighbor_list.push_back(node_list[rev_post_order[i]]);
-    //     }
-    // }
-
+    // sort elements of _adj_list using sortByOrder
     vector<node*> neighbor_list = _adj_list; 
-    // if the current index matches the mutate_point, then we know this is the cycle to mutate
-    if (traversal_index == mutate_point) {
+    // if the current index matches or exceeds the mutate_point, then we know this is the cycle to mutate
+    if (traversal_index >= mutate_point) {
         // we shuffle the neighbor list
         std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
     // otherwise just sort based on the order set by node_id_to_pos, which is
@@ -182,17 +136,6 @@ void node::mutated_DFS_visit(vector<node *> &dfsList,
         std::sort(neighbor_list.begin(), neighbor_list.end(), [this, &node_id_to_pos](node *a, node *b)
                   { return sortByOrder(node_id_to_pos, a, b); });
     }
-
-
-
-    #ifdef DEBUG_MUTATION
-    std::cout << "current node:" << this->node_id() << std::endl;
-    for (size_t i = 0; i < neighbor_list.size(); ++i) {
-        std::cout << neighbor_list[i]->node_id() << "(" << neighbor_list[i]->is_marked() << ")" << ",";
-    }
-    std::cout << std::endl;
-    #endif
-
 
     
     // increment traversal index after checking
