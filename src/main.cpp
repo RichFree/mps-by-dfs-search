@@ -18,15 +18,12 @@
 
 using namespace std;
 
-int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
-
 // these functions are defined in mps_test.cpp
 // but their signatures are not in mps.h, hence they are declared here
 ogdf::Graph read_from_gml(string input_file);
 vector<int> generate_post_order(const ogdf::Graph &G);
-vector<int> generate_mutated_post_order(const ogdf::Graph &G, vector<int> post_order, int mutate_point);
-vector<int> generate_guided_post_order(const ogdf::Graph &G, vector<int> post_order);
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size);
+int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
 
 void vector_printer(const vector<int>& state) {
     for (size_t i = 0; i < state.size(); ++i) {
@@ -38,7 +35,6 @@ void vector_printer(const vector<int>& state) {
 
 vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     // generate first post order
-    // std::cout << "generate first post order" << std::endl;
     vector<int> old_order = generate_post_order(G);
     vector_printer(old_order);
     vector<int> temp_order = old_order;
@@ -55,17 +51,8 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     std::uniform_int_distribution<> dist{first_value, last_value}; // set min and max
 
     for (int k = 0; k < k_max; ++k) {
-        // function compute new post_order and new_removed_size
-        // temp_order and new_removed_size will be updated with new values
 
-        #ifdef TIME
-        auto start = std::chrono::high_resolution_clock::now();
-        #endif
         compute_mps(G, dist(gen), temp_order, new_removed_size);
-        #ifdef TIME
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "compute_mps: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-        #endif
 
         // if there is an improvement
         // 1. update the removed size to use the new smaller size
@@ -96,14 +83,11 @@ int main(int argc, char* argv[]) {
     // generate order here
     vector<int> post_order = repeated_mutation(G, k_max);
 
-    // test timing of function
-    // test_correctness(G);   
-
     // // print final order and number of edges
     std::cout << "---" << std::endl;
     std::cout << "final report" << std::endl;
-    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
-    std::cout << std::endl;
+    // std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
+    // std::cout << std::endl;
     int removed_edges = compute_removed_edge_size(G, post_order);
     std::cout << "Number of removed edges: " << removed_edges << std::endl;
 

@@ -2,7 +2,6 @@
 // Implementation of a MPS algorithm via PC-tree.
 //-----------------------------------------------------------------------------------
 
-#include <chrono>
 #include "mps.h"
 
 #include <ogdf/fileformats/GraphIO.h>
@@ -28,7 +27,6 @@ ogdf::Graph read_from_gml(string input_file) {
     return G;
 }
 
-
 int find_mps(const ogdf::Graph &G) {
 	maximal_planar_subgraph_finder m;
 	return m.find_mps(G);
@@ -44,16 +42,6 @@ vector<int> generate_post_order(const ogdf::Graph &G) {
     return m.generate_post_order(G);
 }
 
-vector<int> generate_mutated_post_order(const ogdf::Graph &G, vector<int> post_order, int mutate_point) {
-    maximal_planar_subgraph_finder m;
-    return m.generate_mutated_post_order(G, post_order, mutate_point);
-}
-
-vector<int> generate_guided_post_order(const ogdf::Graph &G, vector<int> post_order) {
-    maximal_planar_subgraph_finder m;
-    return m.generate_guided_post_order(G, post_order);
-}
-
 
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
     maximal_planar_subgraph_finder m;
@@ -61,16 +49,15 @@ void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order
 }
 
 
-// ---------
+//-----------------------------------------------------------------------------------
+// Function implementation for maximal_planar_subgraph_finder object 
+//-----------------------------------------------------------------------------------
 
+
+// original maximal planar subgraph implementation without additional features
 int maximal_planar_subgraph_finder::find_mps(const ogdf::Graph &G) {
     init_from_graph(G);
 	postOrderTraversal();
-
-    #ifdef DEBUG
-    print_post_order();
-    #endif
-
 	sort_adj_list();
 	determine_edges();
 	back_edge_traversal();
@@ -80,44 +67,10 @@ int maximal_planar_subgraph_finder::find_mps(const ogdf::Graph &G) {
 vector<int> maximal_planar_subgraph_finder::generate_post_order(const ogdf::Graph &G) {
     init_from_graph(G);
     postOrderTraversal();
-
-    #ifdef DEBUG
-    std::cout << "standard post order traversal" << std::endl;
-    print_post_order();
-    #endif
-
     return return_post_order();
 }
 
-// result of this will be used as input to "compute_removed_edge_size"
-vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point) {
-	init_from_graph(G);
-
-    mutatedPostOrderTraversal(post_order, mutate_point);
-
-    #ifdef DEBUG
-    std::cout << "mutated post order traversal" << std::endl;
-    print_post_order();
-    #endif
-
-    return return_post_order();
-}
-
-// result of this will be used as input to "compute_removed_edge_size"
-vector<int> maximal_planar_subgraph_finder::generate_guided_post_order(const ogdf::Graph &G, const vector<int> &post_order) {
-	init_from_graph(G);
-    guidedPostOrderTraversal(post_order);
-
-    // #ifdef DEBUG
-    // std::cout << "guided post order traversal" << std::endl;
-    // print_post_order();
-    // #endif
-
-    return return_post_order();
-}
-
-
-
+// given a post_order, compute the removed edge size
 int maximal_planar_subgraph_finder::compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order) {
     // read_from_gml
 	init_from_graph(G);
@@ -131,11 +84,14 @@ int maximal_planar_subgraph_finder::compute_removed_edge_size(const ogdf::Graph 
 	return output_removed_edge_size();
 }
 
+// clear the internal _post_order_list
 void maximal_planar_subgraph_finder::reset_state() {
     _post_order_list.clear();
 }
 
 void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
+    // part 1:
+    // we first generate a new mutated order, and then compute the removed edge size for that
     init_from_graph(G);
     mutatedPostOrderTraversal(post_order, mutate_point);
 	sort_adj_list();
@@ -143,13 +99,13 @@ void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutat
     back_edge_traversal();
     return_edge_size = output_removed_edge_size();
 
+    // part 2:
     // now we get the canonical representation of the post order
+    // we run guidedPostOrderTraversal on the temp_post_order to rotate it back to the canonical representation
     vector<int> temp_post_order = return_post_order(); 
-
     reset_state(); // clear the _post_order_list
     // perform guided Post Order Traversal to flip the tree
     guidedPostOrderTraversal(temp_post_order);
-
     post_order = return_post_order();
 }
 
@@ -173,8 +129,6 @@ void maximal_planar_subgraph_finder::init_from_graph(const ogdf::Graph &G) {
         _node_list[target->index()]->add_adj(_node_list[source->index()]);
     }
 }
-
-
 
 // count the number of removed edges
 int maximal_planar_subgraph_finder::output_removed_edge_size() {
