@@ -48,11 +48,29 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     // we want the index of the third last value
     // at a given traversal index, only the next iteration has the mutated value
     int last_value = (old_order.size() - 1) - 2;
-    std::uniform_int_distribution<> dist{first_value, last_value}; // set min and max
+
+    const int final_value = old_order.size() - 1;
+    const int iter_size = k_max;
+    const int end_plat_iter = static_cast<int>(0.5 * iter_size); // End of the plateau
+    double growth_factor = std::log(final_value) / (iter_size - end_plat_iter - 1);
+
+    int mutate_index = 0;
+    double updated_value = 0;
 
     for (int k = 0; k < k_max; ++k) {
+        // initial plateau phase
+        if (k < end_plat_iter) {
+            mutate_index = 0;
+        // exponential growth
+        } else {
+            mutate_index = static_cast<int>(updated_value);
+            // update for next round
+            updated_value = std::exp(growth_factor * (k - end_plat_iter));
+        }
 
-        compute_mps(G, dist(gen), temp_order, new_removed_size);
+        // std::cout << "k: " << k << ", mutate_index: " << mutate_index << '\n';
+
+        compute_mps(G, mutate_index, temp_order, new_removed_size);
 
         // if there is an improvement
         // 1. update the removed size to use the new smaller size
