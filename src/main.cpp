@@ -36,7 +36,7 @@ void vector_printer(const vector<int>& state) {
 vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     // generate first post order
     vector<int> old_order = generate_post_order(G);
-    vector_printer(old_order);
+    // vector_printer(old_order);
     vector<int> temp_order = old_order;
     int new_removed_size;
     int old_removed_size = INT_MAX;

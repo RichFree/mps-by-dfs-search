@@ -78,6 +78,27 @@ bool node::sortByOrder(const std::unordered_map<int, int>& node_id_to_pos, node*
     return iter_a->second < iter_b->second;
 }
 
+bool node::sortByFreeNeighbors(node* a, node* b) {
+    vector<node*> node_list_a = a->_adj_list;
+    vector<node*> node_list_b = b->_adj_list;
+    int count_a = 0;
+    int count_b = 0;
+    // count number of unmarked nodes in each node's neighbor list
+    for (auto x:node_list_a) {
+        if (!x->is_marked()) {
+            count_a++;
+        }
+    }
+    for (auto x:node_list_b) {
+        if (!x->is_marked()) {
+            count_b++;
+        }
+    }
+    return count_a < count_b;
+}
+
+
+
 
 void node::guided_DFS_visit(vector<node *> &dfsList, 
                             const vector<node *> &node_list, 
@@ -124,12 +145,17 @@ void node::mutated_DFS_visit(vector<node *> &dfsList,
     // purpose of this block: create list of neighbors ordered in the order they appear in rev_post_order
     // we want to select neighbors that match the rev_post_order at the specific traversal_index
 
-    // sort elements of _adj_list using sortByOrder
     vector<node*> neighbor_list = _adj_list; 
+
     // if the current index matches or exceeds the mutate_point, then we know this is the cycle to mutate
     if (traversal_index >= mutate_point) {
-        // we shuffle the neighbor list
-        std::shuffle(neighbor_list.begin(), neighbor_list.end(), rng);
+        // we sort by the number of unmarked nodes
+        std::sort(neighbor_list.begin(), neighbor_list.end(), [this](node *a, node *b)
+            { return sortByFreeNeighbors(a,b); });
+        // I chose to randomly shuffle the first half to introduce back some randomness
+        // I chose half, but it could very well be other values
+        std::shuffle(neighbor_list.begin(), neighbor_list.begin() + (neighbor_list.size()/2), rng);
+
     // otherwise just sort based on the order set by node_id_to_pos, which is
     // set by the reversed post_order
     } else {

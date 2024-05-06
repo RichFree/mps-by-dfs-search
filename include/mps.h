@@ -127,6 +127,9 @@ public:
 	void un_mark();
 	bool is_marked();
 
+
+    bool sortByFreeNeighbors(node* a, node* b);
+
 private:
 	//Basic information.
 	node_type _type;
