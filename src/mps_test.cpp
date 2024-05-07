@@ -47,6 +47,22 @@ vector<int> generate_post_order_iterative(const ogdf::Graph &G) {
     return m.generate_post_order_iterative(G);
 }
 
+vector<int> generate_guided_post_order(const ogdf::Graph &G, vector<int> post_order) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_guided_post_order(G, post_order);
+}
+
+vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, vector<int> post_order) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_guided_post_order_iterative(G, post_order);
+}
+
+vector<int> generate_mutated_post_order(const ogdf::Graph &G, vector<int> post_order, int mutate_point) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_mutated_post_order(G, post_order, mutate_point);
+}
+
+
 
 
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
@@ -81,6 +97,34 @@ vector<int> maximal_planar_subgraph_finder::generate_post_order_iterative(const 
     post_order_traversal_iterative();
     return return_post_order();
 }
+
+vector<int> maximal_planar_subgraph_finder::generate_guided_post_order(const ogdf::Graph &G, const vector<int> &post_order) {
+	init_from_graph(G);
+    guided_post_order_traversal(post_order);
+    return return_post_order();
+}
+
+vector<int> maximal_planar_subgraph_finder::generate_guided_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order) {
+	init_from_graph(G);
+    guided_post_order_traversal_iterative(post_order);
+    return return_post_order();
+}
+
+
+vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point) {
+	init_from_graph(G);
+    mutated_post_order_traversal(post_order, mutate_point);
+    return return_post_order();
+}
+
+vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point) {
+	init_from_graph(G);
+    mutated_post_order_traversal(post_order, mutate_point);
+    return return_post_order();
+}
+
+
+
 
 
 // given a post_order, compute the removed edge size

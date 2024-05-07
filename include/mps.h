@@ -81,6 +81,7 @@ public:
 
     // custom comparator function to sort nodes according to order in given vector
     bool sortByOrder(const unordered_map<int, int>& node_id_to_pos, node* a, node* b); 
+    bool sortByFreeNeighbors(node* a, node* b);
 
 	//PARENT-CHILDREN
 	void set_parent(node* n) ;
@@ -138,7 +139,6 @@ public:
 	mark_type _mark;
 
 
-    bool sortByFreeNeighbors(node* a, node* b);
 
     // made public for access by iterative
 	vector<node*> _adj_list;
@@ -180,13 +180,25 @@ public:
     void init_from_graph(const ogdf::Graph &G);
 	vector<int> generate_post_order(const ogdf::Graph &G);
 	vector<int> generate_post_order_iterative(const ogdf::Graph &G);
+	vector<int> generate_guided_post_order(const ogdf::Graph &G, const vector<int> &post_order);
+	vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order);
+	vector<int> generate_mutated_post_order(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
+	vector<int> generate_mutated_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
+
 	void post_order_traversal();
 	void guided_post_order_traversal(const vector<int> &post_order);
 	void mutated_post_order_traversal(const vector<int> &post_order, int mutate_point);
 
 
+
+    bool sort_by_order(const unordered_map<int, int>& node_id_to_pos, node* a, node* b); 
+    bool sort_by_free_neighbors(node* a, node* b);
+
+
 	void post_order_traversal_iterative();
+	void guided_post_order_traversal_iterative(const vector<int> &post_order);
     void dfs(node* root_node, int &post_order_id);
+    void dfs_guided(node* root_node, int &post_order_id, const unordered_map<int, int> &node_id_to_pos);
 
     // compute_mps combines functionality to reduce repeating object initialization
     // the results are returned by modifying mutable reference

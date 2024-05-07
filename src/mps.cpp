@@ -32,6 +32,36 @@ maximal_planar_subgraph_finder::return_post_order() {
     return post_order;
 }
 
+bool maximal_planar_subgraph_finder::sort_by_order(const std::unordered_map<int, int> &node_id_to_pos, node* a, node* b) {
+    auto iter_a = node_id_to_pos.find(a->node_id());
+    auto iter_b = node_id_to_pos.find(b->node_id());
+
+    // second yields the position
+    return iter_a->second < iter_b->second;
+}
+
+bool 
+maximal_planar_subgraph_finder::sort_by_free_neighbors(node* a, node* b) {
+    vector<node*> node_list_a = a->_adj_list;
+    vector<node*> node_list_b = b->_adj_list;
+    int count_a = 0;
+    int count_b = 0;
+    // count number of unmarked nodes in each node's neighbor list
+    for (auto x:node_list_a) {
+        if (!x->is_marked()) {
+            count_a++;
+        }
+    }
+    for (auto x:node_list_b) {
+        if (!x->is_marked()) {
+            count_b++;
+        }
+    }
+    return count_a < count_b;
+}
+
+
+
 void
 maximal_planar_subgraph_finder::dfs(node* root_node, int &post_order_id) {
     // mark all vertices as not visited
@@ -114,6 +144,119 @@ maximal_planar_subgraph_finder::post_order_traversal() {
 		}
 	}
 }
+
+void
+maximal_planar_subgraph_finder::dfs_guided(node* root_node, int &post_order_id, const unordered_map<int, int> &node_id_to_pos) {
+    // mark all vertices as not visited
+    vector<bool> in_post_order(_node_list.size(), false);
+
+    // create stack for DFS
+    stack<node*> stack;
+
+    // push the current root node into the stack
+    stack.push(root_node);
+
+    while (!stack.empty()) {
+        // pop node from stack
+        node* current_node = stack.top();
+
+
+        // stack may contain same vertex twice
+        // print the popped item only if it is not visited
+        // proceed if current node is not markd
+        if (!current_node->is_marked()) {
+            current_node->mark();
+            vector<node*> neighbor_list = current_node->_adj_list;
+            // change order of neighbors here
+            // purpose of this block: create list of neighbors ordered in the
+            // order they appear in rev_post_order
+            // we want to select neighbors that match the rev_post_order at the
+            // specific traversal_index
+
+            std::sort(neighbor_list.begin(), neighbor_list.end(), [this, &node_id_to_pos](node* a, node* b) {
+                return sort_by_order(node_id_to_pos, a, b);
+            });
+
+
+            // stack is LIFO - last element in is first to be popped
+            // hence we use a reverse iterator
+            for (auto it = neighbor_list.rbegin(); it != neighbor_list.rend(); ++it) {
+                node* node = (*it);
+                // only add neighbor to stack if it is not visited
+                if (!node->is_marked()) {
+                    node->set_parent(current_node);
+                    stack.push(node);
+                }
+            }
+        } else {
+            // it is possible to see a node again for many times
+            // this section deals with marked nodes that have been added many time
+            // we want to skip nodes that were already added to the output
+            if (in_post_order[current_node->node_id()]) {
+                stack.pop();
+                continue;
+            }
+
+            // seeing it again for the first time means that we have ran out of next neighbors
+            // it is going back up the traversed nodes
+            // std::cout << "3 pop: " << current_node->node_id() << '\n';
+            current_node->set_post_order_index(post_order_id++);
+            _post_order_list.push_back(current_node);
+            in_post_order[current_node->node_id()] = true;
+            stack.pop();
+        }
+    }
+
+
+}
+
+
+// Determine the post-order-list by a DFS-traversal.
+// take in a post-order argument then traces the graph in the same order
+// return is by reference via _post_order_list
+void 
+maximal_planar_subgraph_finder::guided_post_order_traversal_iterative(const vector<int> &post_order) {
+	// node::init_mark();
+
+    // use unordered_map to map node_id to position in reversed post_order
+    unordered_map<int, int> node_id_to_pos;
+    node_id_to_pos.reserve(post_order.size());
+    int j = 0;
+    // we flip the post_order vector around
+    for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
+        node_id_to_pos[post_order[i]] = j++;
+    }
+
+	int post_order_id = 0;
+    int end_condition = _node_list.size();
+    // we start from the end of the post_order, which is the root node
+    int start = post_order[post_order.size() - 1];
+    int i = start;
+
+    // reserve for _post_order_list to decrease reallocation
+    _post_order_list.reserve(_node_list.size());
+
+
+    while (true)
+    {
+        if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
+        {
+            if (!_node_list[i]->is_marked())
+            {
+                // set this node at i to be the root node of a new DFS tree
+                dfs_guided(_node_list[i], post_order_id, node_id_to_pos);
+
+            }
+            break;
+        }
+        if (!_node_list[i]->is_marked())
+        {
+            dfs_guided(_node_list[i], post_order_id, node_id_to_pos);
+        }
+        i = (i + 1) % end_condition;
+    }
+}
+
 
 
 // Determine the post-order-list by a DFS-traversal.

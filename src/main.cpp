@@ -24,6 +24,8 @@ using namespace std;
 ogdf::Graph read_from_gml(string input_file);
 vector<int> generate_post_order(const ogdf::Graph &G);
 vector<int> generate_post_order_iterative(const ogdf::Graph &G);
+vector<int> generate_guided_post_order(const ogdf::Graph &G, vector<int> post_order);
+vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, vector<int> post_order);
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size);
 int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
 
@@ -100,6 +102,14 @@ vector<int> test_dfs_iterative(const ogdf::Graph &G) {
     vector<int> post_order = generate_post_order_iterative(G);
     std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
     std::cout << std::endl;
+
+    post_order = generate_guided_post_order(G, post_order);
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
+    std::cout << std::endl;
+
+    post_order = generate_guided_post_order_iterative(G, post_order);
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
+    std::cout << std::endl;
     return post_order;
 
 }
@@ -128,19 +138,15 @@ int main(int argc, char* argv[]) {
     // vector<int> post_order = repeated_mutation(G, k_max);
     
     // test result
-    vector<int> post_order = test_dfs(G);
+    vector<int> post_order = test_dfs_iterative(G);
 
-    int removed_edges = compute_removed_edge_size(G, post_order);
-    std::cout << removed_edges << std::endl;
-
-    post_order = test_dfs_iterative(G);
 
     // // print final order and number of edges
     // std::cout << "---" << std::endl;
     // std::cout << "final report" << std::endl;
     // std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
     // std::cout << std::endl;
-    removed_edges = compute_removed_edge_size(G, post_order);
+    int removed_edges = compute_removed_edge_size(G, post_order);
     std::cout << removed_edges << std::endl;
 
 	return 0;
