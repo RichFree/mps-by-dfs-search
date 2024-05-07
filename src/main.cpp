@@ -14,7 +14,7 @@
 #include <sys/resource.h>
  
 #include <ogdf/fileformats/GraphIO.h>
-#define START_TEMP 100
+// #define START_TEMP 100
 // #define TIME
 
 using namespace std;
@@ -23,6 +23,7 @@ using namespace std;
 // but their signatures are not in mps.h, hence they are declared here
 ogdf::Graph read_from_gml(string input_file);
 vector<int> generate_post_order(const ogdf::Graph &G);
+vector<int> generate_post_order_iterative(const ogdf::Graph &G);
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size);
 int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
 
@@ -87,6 +88,22 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     return old_order;
 }
 
+vector<int> test_dfs(const ogdf::Graph &G) {
+    vector<int> post_order = generate_post_order(G);
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
+    std::cout << std::endl;
+    return post_order;
+
+}
+
+vector<int> test_dfs_iterative(const ogdf::Graph &G) {
+    vector<int> post_order = generate_post_order_iterative(G);
+    std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
+    std::cout << std::endl;
+    return post_order;
+
+}
+
 
 //-----------------------------------------------------------------------------------
 // Main function.
@@ -95,28 +112,35 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
 
 int main(int argc, char* argv[]) {
     // Define the stack size limit
-    const rlim_t stack_limit = 100 * 1024 * 1024; // 1
+    // const rlim_t stack_limit = 100 * 1024 * 1024; // 1
 
-    // Set the stack size limit
-    struct rlimit rl;
-    getrlimit(RLIMIT_STACK, &rl);
-    rl.rlim_cur = stack_limit;
-    setrlimit(RLIMIT_STACK, &rl);
+    // // Set the stack size limit
+    // struct rlimit rl;
+    // getrlimit(RLIMIT_STACK, &rl);
+    // rl.rlim_cur = stack_limit;
+    // setrlimit(RLIMIT_STACK, &rl);
 
     string input_file = argv[1];
-    int k_max = std::stoi(argv[2]);
 
     const ogdf::Graph G = read_from_gml(input_file);
 
     // generate order here
-    vector<int> post_order = repeated_mutation(G, k_max);
+    // vector<int> post_order = repeated_mutation(G, k_max);
+    
+    // test result
+    vector<int> post_order = test_dfs(G);
+
+    int removed_edges = compute_removed_edge_size(G, post_order);
+    std::cout << removed_edges << std::endl;
+
+    post_order = test_dfs_iterative(G);
 
     // // print final order and number of edges
     // std::cout << "---" << std::endl;
     // std::cout << "final report" << std::endl;
     // std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
     // std::cout << std::endl;
-    int removed_edges = compute_removed_edge_size(G, post_order);
+    removed_edges = compute_removed_edge_size(G, post_order);
     std::cout << removed_edges << std::endl;
 
 	return 0;

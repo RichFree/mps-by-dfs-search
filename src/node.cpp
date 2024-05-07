@@ -20,7 +20,7 @@ node::node(node_type t) {
 	_parent = 0;
 	_post_order_index = INT_MAX;
 	_node_id = INT_MAX;
-	_mark = 0;
+	_mark = UNMARKED;
 }
 
 //-----------------------------------------------------------------------------------
@@ -346,12 +346,10 @@ void node::add_essential(node* u) {_essential_list.push_back(u);}
 //-----------------------------------------------------------------------------------
 // MARK
 //-----------------------------------------------------------------------------------
-void node::mark() {_mark = _ref_mark;}
+void node::mark() {_mark = MARKED;}
 
-void node::init_mark() {++_ref_mark;}
+void node::un_mark() {_mark = UNMARKED;}
 
-void node::un_mark() {_mark = 0;}
+bool node::is_marked() {return _mark == MARKED;}
 
-bool node::is_marked() {return _mark == _ref_mark;}
-
-int node::_ref_mark = 1;
+// int node::_ref_mark = 1;

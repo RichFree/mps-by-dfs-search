@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
+#include <stack>
 #include <ogdf/fileformats/GraphIO.h>
 
 using namespace std;
@@ -35,6 +36,12 @@ enum node_type {
 	C_NODE = 1,
 	REPLICA_NODE = 2,
 	AE_VIRTUAL_ROOT = 3
+};
+
+enum mark_type {
+    UNMARKED = 0,
+    MARKED = 1,
+    RESERVED = 2,
 };
 
 class node
@@ -127,8 +134,14 @@ public:
 	void un_mark();
 	bool is_marked();
 
+	//Mark
+	mark_type _mark;
+
 
     bool sortByFreeNeighbors(node* a, node* b);
+
+    // made public for access by iterative
+	vector<node*> _adj_list;
 
 private:
 	//Basic information.
@@ -148,16 +161,13 @@ private:
 	vector<node*> _children;
 
 	//Information about about p-nodes in DFS-tree
-	vector<node*> _adj_list;
+	// vector<node*> _adj_list;
 	int _post_order_index;
 	int _node_id;
 
 	//List of essential nodes in c-node
 	vector<node*> _essential_list;
 
-	//Mark
-	int _mark;
-	static int _ref_mark;
 };
 
 class maximal_planar_subgraph_finder
@@ -169,9 +179,14 @@ public:
     // functions that prepare state
     void init_from_graph(const ogdf::Graph &G);
 	vector<int> generate_post_order(const ogdf::Graph &G);
+	vector<int> generate_post_order_iterative(const ogdf::Graph &G);
 	void post_order_traversal();
 	void guided_post_order_traversal(const vector<int> &post_order);
 	void mutated_post_order_traversal(const vector<int> &post_order, int mutate_point);
+
+
+	void post_order_traversal_iterative();
+    void dfs(node* root_node, int &post_order_id);
 
     // compute_mps combines functionality to reduce repeating object initialization
     // the results are returned by modifying mutable reference

@@ -42,6 +42,12 @@ vector<int> generate_post_order(const ogdf::Graph &G) {
     return m.generate_post_order(G);
 }
 
+vector<int> generate_post_order_iterative(const ogdf::Graph &G) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_post_order_iterative(G);
+}
+
+
 
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
     maximal_planar_subgraph_finder m;
@@ -69,6 +75,13 @@ vector<int> maximal_planar_subgraph_finder::generate_post_order(const ogdf::Grap
     post_order_traversal();
     return return_post_order();
 }
+
+vector<int> maximal_planar_subgraph_finder::generate_post_order_iterative(const ogdf::Graph &G) {
+    init_from_graph(G);
+    post_order_traversal_iterative();
+    return return_post_order();
+}
+
 
 // given a post_order, compute the removed edge size
 int maximal_planar_subgraph_finder::compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order) {

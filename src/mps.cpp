@@ -32,10 +32,80 @@ maximal_planar_subgraph_finder::return_post_order() {
     return post_order;
 }
 
+void
+maximal_planar_subgraph_finder::dfs(node* root_node, int &post_order_id) {
+    // mark all vertices as not visited
+    vector<bool> in_post_order(_node_list.size(), false);
+
+    // create stack for DFS
+    stack<node*> stack;
+
+    // push the current root node into the stack
+    stack.push(root_node);
+
+    while (!stack.empty()) {
+        // pop node from stack
+        node* current_node = stack.top();
+        // std::cout << "1 top: " << current_node->node_id() << '\n';
+
+
+        // stack may contain same vertex twice
+        // print the popped item only if it is not visited
+        // proceed if current node is not markd
+        if (!current_node->is_marked()) {
+            current_node->mark();
+            vector<node*> neighbor_list = current_node->_adj_list;
+            // stack is LIFO - last element in is first to be popped
+            // hence we use a reverse iterator
+            for (auto it = neighbor_list.rbegin(); it != neighbor_list.rend(); ++it) {
+                node* node = (*it);
+                // only add neighbor to stack if it is not visited
+                if (!node->is_marked()) {
+                    // std::cout << "2 add: " << node->node_id() << '\n';
+                    node->set_parent(current_node);
+                    stack.push(node);
+                }
+            }
+        } else {
+            // it is possible to see a node again for many times
+            // this section deals with marked nodes that have been added many time
+            // we want to skip nodes that were already added to the output
+            if (in_post_order[current_node->node_id()]) {
+                stack.pop();
+                continue;
+            }
+
+            // seeing it again for the first time means that we have ran out of next neighbors
+            // it is going back up the traversed nodes
+            // std::cout << "3 pop: " << current_node->node_id() << '\n';
+            current_node->set_post_order_index(post_order_id++);
+            _post_order_list.push_back(current_node);
+            in_post_order[current_node->node_id()] = true;
+            stack.pop();
+        }
+    }
+
+
+}
+
+void 
+maximal_planar_subgraph_finder::post_order_traversal_iterative() {
+    // node::init_mark();
+    int post_order_id = 0;
+    // we need to iterate through nodes in case graph is disconnected
+	for (size_t i = 0; i < _node_list.size(); ++i) {
+		if (!_node_list[i]->is_marked()) {
+            // set this node at i to be the root node of a new DFS tree
+            dfs(_node_list[i], post_order_id);
+		}
+	}
+
+}
+
 //Determine the post-order-list by a DFS-traversal.
 void
 maximal_planar_subgraph_finder::post_order_traversal() {
-	node::init_mark();
+	// node::init_mark();
     // always start with node 0
 	int postOrderID = 0;
 	for (size_t i = 0; i < _node_list.size(); ++i) {
@@ -51,7 +121,7 @@ maximal_planar_subgraph_finder::post_order_traversal() {
 // return is by reference via _post_order_list
 void 
 maximal_planar_subgraph_finder::guided_post_order_traversal(const vector<int> &post_order) {
-	node::init_mark();
+	// node::init_mark();
 
     // use unordered_map to map node_id to position in reversed post_order
     unordered_map<int, int> node_id_to_pos;
@@ -95,7 +165,7 @@ maximal_planar_subgraph_finder::guided_post_order_traversal(const vector<int> &p
 // return is by reference via _post_order_list
 void
 maximal_planar_subgraph_finder::mutated_post_order_traversal(const vector<int> &post_order, int mutate_point) {
-	node::init_mark();
+	// node::init_mark();
 
     // implementation: use unordered_map to map node_id to position in reversed post_order
     unordered_map<int, int> node_id_to_pos;
