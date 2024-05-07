@@ -178,17 +178,9 @@ public:
 
     // functions that prepare state
     void init_from_graph(const ogdf::Graph &G);
-	vector<int> generate_post_order(const ogdf::Graph &G);
 	vector<int> generate_post_order_iterative(const ogdf::Graph &G);
-	vector<int> generate_guided_post_order(const ogdf::Graph &G, const vector<int> &post_order);
 	vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order);
-	vector<int> generate_mutated_post_order(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
 	vector<int> generate_mutated_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
-
-	void post_order_traversal();
-	void guided_post_order_traversal(const vector<int> &post_order);
-	void mutated_post_order_traversal(const vector<int> &post_order, int mutate_point);
-
 
 
     bool sort_by_order(const unordered_map<int, int>& node_id_to_pos, node* a, node* b); 

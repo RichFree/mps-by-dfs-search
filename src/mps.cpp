@@ -133,19 +133,6 @@ maximal_planar_subgraph_finder::post_order_traversal_iterative() {
 
 }
 
-//Determine the post-order-list by a DFS-traversal.
-void
-maximal_planar_subgraph_finder::post_order_traversal() {
-	// node::init_mark();
-    // always start with node 0
-	int postOrderID = 0;
-	for (size_t i = 0; i < _node_list.size(); ++i) {
-		if (!_node_list[i]->is_marked()) {
-			_node_list[i]->DFS_visit(_post_order_list, postOrderID);
-		}
-	}
-}
-
 void
 maximal_planar_subgraph_finder::dfs_guided(node* root_node, int &post_order_id, const unordered_map<int, int> &node_id_to_pos) {
     // mark all vertices as not visited
@@ -258,51 +245,6 @@ maximal_planar_subgraph_finder::guided_post_order_traversal_iterative(const vect
     }
 }
 
-
-
-// Determine the post-order-list by a DFS-traversal.
-// take in a post-order argument then traces the graph in the same order
-// return is by reference via _post_order_list
-void 
-maximal_planar_subgraph_finder::guided_post_order_traversal(const vector<int> &post_order) {
-	// node::init_mark();
-
-    // use unordered_map to map node_id to position in reversed post_order
-    unordered_map<int, int> node_id_to_pos;
-    node_id_to_pos.reserve(post_order.size());
-    int j = 0;
-    // we flip the post_order vector around
-    for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
-        node_id_to_pos[post_order[i]] = j++;
-    }
-
-	int postOrderID = 0;
-    int end_condition = _node_list.size();
-    // we start from the end of the post_order, which is the root node
-    int start = post_order[post_order.size() - 1];
-    int i = start;
-
-    // reserve for _post_order_list to decrease reallocation
-    _post_order_list.reserve(_node_list.size());
-
-
-    while (true)
-    {
-        if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
-        {
-            if (!_node_list[i]->is_marked())
-            {
-                _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, node_id_to_pos);
-            }
-            break;
-        }
-        if (!_node_list[i]->is_marked())
-        {
-            _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, node_id_to_pos);
-        }
-        i = (i + 1) % end_condition;
-    }
-}
 
 void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_order_id,
                                                  const unordered_map<int, int> &node_id_to_pos,
@@ -453,69 +395,6 @@ void maximal_planar_subgraph_finder::mutated_post_order_traversal_iterative(cons
     }
 }
 
-//Determine the post-order-list by a DFS-traversal.
-// take in a post-order argument then traces the graph in the same order
-// return is by reference via _post_order_list
-void
-maximal_planar_subgraph_finder::mutated_post_order_traversal(const vector<int> &post_order, int mutate_point) {
-	// node::init_mark();
-
-    // implementation: use unordered_map to map node_id to position in reversed post_order
-    unordered_map<int, int> node_id_to_pos;
-    node_id_to_pos.reserve(post_order.size());
-    int j = 0;
-    // we flip the post_order vector around
-    for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
-        node_id_to_pos[post_order[i]] = j++;
-    }
-
-	int postOrderID = 0;
-    int traversal_index = 0;
-
-    // setup random rng function
-    std::random_device rd;
-    std::mt19937 rng{rd()};
-
-
-    int start = 0;
-    // if we mutate first node, we will select a random starting node
-    if (mutate_point == 0) {
-        int first_value = 0;
-        int last_value = post_order.size() - 1;  
-        std::uniform_int_distribution<> dist{first_value, last_value}; 
-        start = post_order[dist(rng)];
-    // if we don't mutate first, we just use the root node of the post_order
-    } else {
-        start = post_order[post_order.size() - 1];
-    }
-
-    // set loop variables
-    int i = start;
-
-    // reserve for _post_order_list to decrease reallocation
-    _post_order_list.reserve(_node_list.size());
-
-
-    int end_condition = _node_list.size();
-    // this loop assumes start is not from 0
-    // if starting index is not 0, it just increments and loops around until it encounters the element before it
-    while (true)
-    {
-        if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
-        {
-            if (!_node_list[i]->is_marked())
-            {
-                _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, node_id_to_pos, mutate_point, rng);
-            }
-            break;
-        }
-        if (!_node_list[i]->is_marked())
-        {
-            _node_list[i]->mutated_DFS_visit(_post_order_list, _node_list, postOrderID, traversal_index, node_id_to_pos, mutate_point, rng);
-        }
-        i = (i + 1) % end_condition;
-    }
-}
 
 // function to print post order 
 void
