@@ -197,8 +197,12 @@ public:
 
 	void post_order_traversal_iterative();
 	void guided_post_order_traversal_iterative(const vector<int> &post_order);
+	void mutated_post_order_traversal_iterative(const vector<int> &post_order, int mutate_point);
     void dfs(node* root_node, int &post_order_id);
     void dfs_guided(node* root_node, int &post_order_id, const unordered_map<int, int> &node_id_to_pos);
+    void dfs_mutated(node* root_node, int &post_order_id, 
+                    const unordered_map<int, int> &node_id_to_pos, 
+                    int mutate_point, int &traversal_index, mt19937 rng);
 
     // compute_mps combines functionality to reduce repeating object initialization
     // the results are returned by modifying mutable reference

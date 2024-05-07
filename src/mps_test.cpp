@@ -62,6 +62,10 @@ vector<int> generate_mutated_post_order(const ogdf::Graph &G, vector<int> post_o
     return m.generate_mutated_post_order(G, post_order, mutate_point);
 }
 
+vector<int> generate_mutated_post_order_iterative(const ogdf::Graph &G, vector<int> post_order, int mutate_point) {
+    maximal_planar_subgraph_finder m;
+    return m.generate_mutated_post_order_iterative(G, post_order, mutate_point);
+}
 
 
 
@@ -119,7 +123,7 @@ vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order(const og
 
 vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point) {
 	init_from_graph(G);
-    mutated_post_order_traversal(post_order, mutate_point);
+    mutated_post_order_traversal_iterative(post_order, mutate_point);
     return return_post_order();
 }
 

@@ -32,7 +32,8 @@ maximal_planar_subgraph_finder::return_post_order() {
     return post_order;
 }
 
-bool maximal_planar_subgraph_finder::sort_by_order(const std::unordered_map<int, int> &node_id_to_pos, node* a, node* b) {
+bool 
+maximal_planar_subgraph_finder::sort_by_order(const std::unordered_map<int, int> &node_id_to_pos, node* a, node* b) {
     auto iter_a = node_id_to_pos.find(a->node_id());
     auto iter_b = node_id_to_pos.find(b->node_id());
 
@@ -298,6 +299,155 @@ maximal_planar_subgraph_finder::guided_post_order_traversal(const vector<int> &p
         if (!_node_list[i]->is_marked())
         {
             _node_list[i]->guided_DFS_visit(_post_order_list, _node_list, postOrderID, node_id_to_pos);
+        }
+        i = (i + 1) % end_condition;
+    }
+}
+
+void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_order_id,
+                                                 const unordered_map<int, int> &node_id_to_pos,
+                                                 int mutate_point,
+                                                 int &traversal_index,
+                                                 mt19937 rng) {
+
+    // traversal index tracks how many nodes we have moved in the tree
+    // mark all vertices as not visited
+    vector<bool> in_post_order(_node_list.size(), false);
+
+    // create stack for DFS
+    stack<node*> stack;
+
+    // push the current root node into the stack
+    stack.push(root_node);
+
+    while (!stack.empty()) {
+        // pop node from stack
+        node* current_node = stack.top();
+
+
+        // stack may contain same vertex twice
+        // print the popped item only if it is not visited
+        // proceed if current node is not markd
+        if (!current_node->is_marked()) {
+            current_node->mark();
+            vector<node*> neighbor_list = current_node->_adj_list;
+            // change order of neighbors here
+            // purpose of this block: create list of neighbors ordered in the
+            // order they appear in rev_post_order
+            // we want to select neighbors that match the rev_post_order at the
+            // specific traversal_index
+
+            // if the current index matches or exceeds the mutate_point, then we know this is the cycle to mutate
+            if (traversal_index >= mutate_point) {
+                // we sort by the number of unmarked nodes
+                std::sort(neighbor_list.begin(), neighbor_list.end(), [this](node *a, node *b)
+                    { return sort_by_free_neighbors(a,b); });
+                // I chose to randomly shuffle the first half to introduce back some randomness
+                // I chose half, but it could very well be other values
+                std::shuffle(neighbor_list.begin(), neighbor_list.begin() + (neighbor_list.size()/2), rng);
+
+            // otherwise just sort based on the order set by node_id_to_pos, which is
+            // set by the reversed post_order
+            } else {
+                std::sort(neighbor_list.begin(), neighbor_list.end(), [this, &node_id_to_pos](node *a, node *b)
+                        { return sort_by_order(node_id_to_pos, a, b); });
+            }
+
+
+            // increment traversal index when encountering a node for first time
+            traversal_index++;
+
+
+            // stack is LIFO - last element in is first to be popped
+            // hence we use a reverse iterator
+            for (auto it = neighbor_list.rbegin(); it != neighbor_list.rend(); ++it) {
+                node* node = (*it);
+                // only add neighbor to stack if it is not visited
+                if (!node->is_marked()) {
+                    node->set_parent(current_node);
+                    stack.push(node);
+                }
+            }
+        } else {
+            // it is possible to see a node again for many times
+            // this section deals with marked nodes that have been added many time
+            // we want to skip nodes that were already added to the output
+            if (in_post_order[current_node->node_id()]) {
+                stack.pop();
+                continue;
+            }
+
+            // seeing it again for the first time means that we have ran out of next neighbors
+            // it is going back up the traversed nodes
+            // std::cout << "3 pop: " << current_node->node_id() << '\n';
+            current_node->set_post_order_index(post_order_id++);
+            _post_order_list.push_back(current_node);
+            in_post_order[current_node->node_id()] = true;
+            stack.pop();
+        }
+    }
+}
+
+//Determine the post-order-list by a DFS-traversal.
+// take in a post-order argument then traces the graph in the same order
+// return is by reference via _post_order_list
+void maximal_planar_subgraph_finder::mutated_post_order_traversal_iterative(const vector<int> &post_order,
+                                                                            int mutate_point) {
+    // node::init_mark();
+
+    // implementation: use unordered_map to map node_id to position in reversed post_order
+    unordered_map<int, int> node_id_to_pos;
+    node_id_to_pos.reserve(post_order.size());
+    int j = 0;
+    // we flip the post_order vector around
+    for (size_t i = post_order.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
+        node_id_to_pos[post_order[i]] = j++;
+    }
+
+	int post_order_id = 0;
+    int traversal_index = 0;
+
+    // setup random rng function
+    std::random_device rd;
+    std::mt19937 rng{rd()};
+
+
+    int start = 0;
+    // if we mutate first node, we will select a random starting node
+    if (mutate_point == 0) {
+        int first_value = 0;
+        int last_value = post_order.size() - 1;  
+        std::uniform_int_distribution<> dist{first_value, last_value}; 
+        start = post_order[dist(rng)];
+    // if we don't mutate first, we just use the root node of the post_order
+    } else {
+        start = post_order[post_order.size() - 1];
+    }
+
+    // reserve for _post_order_list to decrease reallocation
+    _post_order_list.reserve(_node_list.size());
+
+    // set loop variables
+    int i = start;
+    int end_condition = _node_list.size();
+    // this loop assumes start is not from 0
+    // if starting index is not 0, it just increments and loops around until it encounters the element before it
+    while (true)
+    {
+        if (((start > 0) && (i == (start - 1))) || ((start == 0 ) && (i == end_condition - 1)))
+        {
+            if (!_node_list[i]->is_marked())
+            {
+                dfs_mutated(_node_list[i], post_order_id, node_id_to_pos,
+                            mutate_point, traversal_index, rng);
+            }
+            break;
+        }
+        if (!_node_list[i]->is_marked())
+        {
+            dfs_mutated(_node_list[i], post_order_id, node_id_to_pos,
+                        mutate_point, traversal_index, rng);
+
         }
         i = (i + 1) % end_condition;
     }
