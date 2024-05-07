@@ -23,8 +23,6 @@ using namespace std;
 // but their signatures are not in mps.h, hence they are declared here
 ogdf::Graph read_from_gml(string input_file);
 vector<int> generate_post_order_iterative(const ogdf::Graph &G);
-vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, vector<int> post_order);
-vector<int> generate_mutated_post_order_iterative(const ogdf::Graph &G, vector<int> post_order, int mutate_point);
 void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size);
 int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order);
 

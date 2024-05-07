@@ -27,11 +27,6 @@ ogdf::Graph read_from_gml(string input_file) {
     return G;
 }
 
-// int find_mps(const ogdf::Graph &G) {
-// 	maximal_planar_subgraph_finder m;
-// 	return m.find_mps(G);
-// }
-
 int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order) {
     maximal_planar_subgraph_finder m;
     return m.compute_removed_edge_size(G, post_order);
@@ -41,18 +36,6 @@ int compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order) {
 vector<int> generate_post_order_iterative(const ogdf::Graph &G) {
     maximal_planar_subgraph_finder m;
     return m.generate_post_order_iterative(G);
-}
-
-
-vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, vector<int> post_order) {
-    maximal_planar_subgraph_finder m;
-    return m.generate_guided_post_order_iterative(G, post_order);
-}
-
-
-vector<int> generate_mutated_post_order_iterative(const ogdf::Graph &G, vector<int> post_order, int mutate_point) {
-    maximal_planar_subgraph_finder m;
-    return m.generate_mutated_post_order_iterative(G, post_order, mutate_point);
 }
 
 
@@ -67,36 +50,11 @@ void compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order
 //-----------------------------------------------------------------------------------
 
 
-// original maximal planar subgraph implementation without additional features
-// int maximal_planar_subgraph_finder::find_mps(const ogdf::Graph &G) {
-//     init_from_graph(G);
-// 	post_order_traversal();
-// 	sort_adj_list();
-// 	determine_edges();
-// 	back_edge_traversal();
-// 	return output_removed_edge_size();
-// }
-
-
 vector<int> maximal_planar_subgraph_finder::generate_post_order_iterative(const ogdf::Graph &G) {
     init_from_graph(G);
     post_order_traversal_iterative();
     return return_post_order();
 }
-
-vector<int> maximal_planar_subgraph_finder::generate_guided_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order) {
-	init_from_graph(G);
-    guided_post_order_traversal_iterative(post_order);
-    return return_post_order();
-}
-
-
-vector<int> maximal_planar_subgraph_finder::generate_mutated_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point) {
-	init_from_graph(G);
-    mutated_post_order_traversal_iterative(post_order, mutate_point);
-    return return_post_order();
-}
-
 
 // given a post_order, compute the removed edge size
 int maximal_planar_subgraph_finder::compute_removed_edge_size(const ogdf::Graph &G, vector<int> post_order) {
