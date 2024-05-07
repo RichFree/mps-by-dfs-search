@@ -10,7 +10,7 @@ DEPS := $(OBJS:.o=.d)
 # compiler and flags
 CXX := g++
 CPPFLAGS := -Iinclude -MMD -MP
-CXXFLAGS := -std=c++14 -Wall
+CXXFLAGS := -std=c++14 -Wall -g
 LDFLAGS := -lOGDF
 
 build: $(TARGET)

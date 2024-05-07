@@ -41,7 +41,7 @@ void vector_printer(const vector<int>& state) {
 
 vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     // generate first post order
-    vector<int> old_order = generate_post_order(G);
+    vector<int> old_order = generate_post_order_iterative(G);
     // vector_printer(old_order);
     vector<int> temp_order = old_order;
     int new_removed_size;
@@ -50,10 +50,6 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
     // prepare random selection
     std::random_device rd;
     std::mt19937 gen{rd()}; // seed the generator
-    int first_value = 0;
-    // we want the index of the third last value
-    // at a given traversal index, only the next iteration has the mutated value
-    int last_value = (old_order.size() - 1) - 2;
 
     const int final_value = old_order.size() - 1;
     const int iter_size = k_max;
@@ -133,14 +129,15 @@ int main(int argc, char* argv[]) {
     // setrlimit(RLIMIT_STACK, &rl);
 
     string input_file = argv[1];
+    int k_max = std::stoi(argv[2]);
 
     const ogdf::Graph G = read_from_gml(input_file);
 
     // generate order here
-    // vector<int> post_order = repeated_mutation(G, k_max);
+    vector<int> post_order = repeated_mutation(G, k_max);
     
     // test result
-    vector<int> post_order = test_dfs_iterative(G);
+    // vector<int> post_order = test_dfs_iterative(G);
 
 
     // // print final order and number of edges
