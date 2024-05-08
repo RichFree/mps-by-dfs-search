@@ -12,10 +12,10 @@
 #include <random>
 #include <vector>
 #include <sys/resource.h>
+#include <filesystem>
+#include <chrono>
  
 #include <ogdf/fileformats/GraphIO.h>
-// #define START_TEMP 100
-// #define TIME
 
 using namespace std;
 
@@ -48,7 +48,7 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
 
     const int final_value = old_order.size() - 1;
     const int iter_size = k_max;
-    const int end_plat_iter = static_cast<int>(0.5 * iter_size); // End of the plateau
+    const int end_plat_iter = static_cast<int>(0.7 * iter_size); // End of the plateau
     double growth_factor = std::log(final_value) / (iter_size - end_plat_iter - 1);
 
     int mutate_index = 0;
@@ -95,16 +95,20 @@ int main(int argc, char* argv[]) {
 
     const ogdf::Graph G = read_from_gml(input_file);
 
-    // generate order here
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // perform MPS via repeated mutation
     vector<int> post_order = repeated_mutation(G, k_max);
-    
-    // // print final order and number of edges
-    // std::cout << "---" << std::endl;
-    // std::cout << "final report" << std::endl;
-    // std::copy(post_order.begin(), post_order.end(), std::ostream_iterator<int>(std::cout, ","));
-    // std::cout << std::endl;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    double time = static_cast<double>(microseconds) / 1'000'000.0;
+
+   
     int removed_edges = compute_removed_edge_size(G, post_order);
-    std::cout << removed_edges << std::endl;
+    string filename = filesystem::path(input_file).stem();
+    std::cout << filename << ", " << removed_edges << ", " << time << std::endl;
 
 	return 0;
 }
