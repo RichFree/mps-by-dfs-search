@@ -138,6 +138,10 @@ public:
 	//Mark
 	mark_type _mark;
 
+    // keep track of unmarked neighbors
+    void add_unmarked();
+    int get_unmarked_count();
+
 
 
     // made public for access by iterative
@@ -167,6 +171,9 @@ private:
 
 	//List of essential nodes in c-node
 	vector<node*> _essential_list;
+
+    // store number of unmarked neighbors
+    int _unmarked_neighbors_count;
 
 };
 

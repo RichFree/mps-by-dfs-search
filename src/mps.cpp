@@ -44,21 +44,9 @@ maximal_planar_subgraph_finder::sort_by_order(const std::unordered_map<int, int>
 // this is very inefficient
 bool 
 maximal_planar_subgraph_finder::sort_by_free_neighbors(node* a, node* b) {
-    vector<node*> node_list_a = a->_adj_list;
-    vector<node*> node_list_b = b->_adj_list;
-    int count_a = 0;
-    int count_b = 0;
+    int count_a = a->get_unmarked_count();
+    int count_b = b->get_unmarked_count();
     // count number of unmarked nodes in each node's neighbor list
-    for (auto x:node_list_a) {
-        if (!x->is_marked()) {
-            count_a++;
-        }
-    }
-    for (auto x:node_list_b) {
-        if (!x->is_marked()) {
-            count_b++;
-        }
-    }
     return count_a < count_b;
 }
 

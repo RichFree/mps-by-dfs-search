@@ -21,6 +21,7 @@ node::node(node_type t) {
 	_post_order_index = INT_MAX;
 	_node_id = INT_MAX;
 	_mark = UNMARKED;
+    _unmarked_neighbors_count = 0;
 }
 
 //-----------------------------------------------------------------------------------
@@ -223,10 +224,25 @@ void node::add_essential(node* u) {_essential_list.push_back(u);}
 //-----------------------------------------------------------------------------------
 // MARK
 //-----------------------------------------------------------------------------------
-void node::mark() {_mark = MARKED;}
+void node::mark() {
+    _mark = MARKED;
+    for (auto node:_adj_list) {
+        node->_unmarked_neighbors_count--;
+    }
+}
 
 void node::un_mark() {_mark = UNMARKED;}
 
 bool node::is_marked() {return _mark == MARKED;}
 
 // int node::_ref_mark = 1;
+
+void node::add_unmarked() {
+    _unmarked_neighbors_count++;
+}
+
+int node::get_unmarked_count() {
+    return _unmarked_neighbors_count;
+}
+
+

@@ -106,7 +106,9 @@ void maximal_planar_subgraph_finder::init_from_graph(const ogdf::Graph &G) {
         ogdf::node source = e->source();
         ogdf::node target = e->target();
         _node_list[source->index()]->add_adj(_node_list[target->index()]);
+        _node_list[source->index()]->add_unmarked();
         _node_list[target->index()]->add_adj(_node_list[source->index()]);
+        _node_list[target->index()]->add_unmarked();
     }
 }
 
