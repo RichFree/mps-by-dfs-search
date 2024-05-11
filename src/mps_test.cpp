@@ -86,14 +86,6 @@ void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutat
 	determine_edges();
     back_edge_traversal();
     return_edge_size = output_removed_edge_size();
-
-    // part 2:
-    // now we get the canonical representation of the post order
-    // we run guided_post_order_traversal on the temp_post_order to rotate it back to the canonical representation
-    vector<int> temp_post_order = return_post_order(); 
-    reset_state(); // clear the _post_order_list
-    // perform guided Post Order Traversal to flip the tree
-    guided_post_order_traversal_iterative(temp_post_order);
     post_order = return_post_order();
 }
 

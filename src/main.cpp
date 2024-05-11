@@ -68,6 +68,9 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max) {
         // std::cout << "k: " << k << ", mutate_index: " << mutate_index << '\n';
 
         compute_mps(G, mutate_index, temp_order, new_removed_size);
+        // std::cout << "new removed size: " << new_removed_size << std::endl;
+
+        // std::cout << "recomputed size: " << compute_removed_edge_size(G, temp_order) << std::endl;
 
         // if there is an improvement
         // 1. update the removed size to use the new smaller size

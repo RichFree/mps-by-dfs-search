@@ -41,6 +41,7 @@ maximal_planar_subgraph_finder::sort_by_order(const std::unordered_map<int, int>
     return iter_a->second < iter_b->second;
 }
 
+// this is very inefficient
 bool 
 maximal_planar_subgraph_finder::sort_by_free_neighbors(node* a, node* b) {
     vector<node*> node_list_a = a->_adj_list;
@@ -286,7 +287,8 @@ void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_orde
                     { return sort_by_free_neighbors(a,b); });
                 // I chose to randomly shuffle the first half to introduce back some randomness
                 // I chose half, but it could very well be other values
-                std::shuffle(neighbor_list.begin(), neighbor_list.begin() + (neighbor_list.size()/2), rng);
+				// checkpoint
+                // std::shuffle(neighbor_list.begin(), neighbor_list.begin() + (neighbor_list.size()/2), rng);
 
             // otherwise just sort based on the order set by node_id_to_pos, which is
             // set by the reversed post_order
@@ -302,8 +304,15 @@ void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_orde
 
             // stack is LIFO - last element in is first to be popped
             // hence we use a reverse iterator
-            for (auto it = neighbor_list.rbegin(); it != neighbor_list.rend(); ++it) {
-                node* node = (*it);
+
+            for (size_t i = neighbor_list.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
+                if (traversal_index >= mutate_point) {
+                    std::sort(neighbor_list.begin(), neighbor_list.begin() + i, [this](node *a, node *b)
+                            { return sort_by_free_neighbors(a, b); });
+                    // we shuffle the section close to the index
+                    std::shuffle(neighbor_list.begin() + (i * 9/10), neighbor_list.begin() + i, rng);
+                }
+                node* node = neighbor_list[i];
                 // only add neighbor to stack if it is not visited
                 if (!node->is_marked()) {
                     node->set_parent(current_node);
