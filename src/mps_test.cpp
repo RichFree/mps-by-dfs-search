@@ -111,39 +111,37 @@ void maximal_planar_subgraph_finder::reset_state() {
     }
 }
 
-// void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
-//     // part 1:
-//     // we first generate a new mutated order, and then compute the removed edge size for that
-//     init_from_graph(G);
-//     mutated_post_order_traversal_iterative(post_order, mutate_point);
-//     // compute MPS on the immediate tree produced by mutated traversal
-//     sort_adj_list();
-//     determine_edges();
-//     back_edge_traversal();
-//     return_edge_size = output_removed_edge_size();
-// 
-// 
-//     vector<int> temp_order = return_post_order();
-//     reset_state();
-//     // part 2: compute mps with correct orientation tree
-//     guided_post_order_traversal_iterative(temp_order);
-//     post_order = return_post_order();
-// }
-
-// previous implementation did not rotate result
 void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
     // part 1:
     // we first generate a new mutated order, and then compute the removed edge size for that
     init_from_graph(G);
     mutated_post_order_traversal_iterative(post_order, mutate_point);
-    // print_post_order();
+    // compute MPS on the immediate tree produced by mutated traversal
     sort_adj_list();
     determine_edges();
-    // print_edge_list();
     back_edge_traversal();
     return_edge_size = output_removed_edge_size();
+
+
+    vector<int> temp_order = return_post_order();
+    reset_state();
+    // part 2: compute mps with correct orientation tree
+    guided_post_order_traversal_iterative(temp_order);
     post_order = return_post_order();
 }
+
+// previous implementation did not rotate result
+// void maximal_planar_subgraph_finder::compute_mps(const ogdf::Graph &G, int mutate_point, vector<int> &post_order, int &return_edge_size) {
+//     // part 1:
+//     // we first generate a new mutated order, and then compute the removed edge size for that
+//     init_from_graph(G);
+//     mutated_post_order_traversal_iterative(post_order, mutate_point);
+//     sort_adj_list();
+//     determine_edges();
+//     back_edge_traversal();
+//     return_edge_size = output_removed_edge_size();
+//     post_order = return_post_order();
+// }
 
 
 //-----------------------------------------------------------------------------------

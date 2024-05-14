@@ -485,14 +485,8 @@ maximal_planar_subgraph_finder::sort_adj_list() {
             vecList[_post_order_list[i]->adj(j)->post_order_index()].push_back(_post_order_list[i]);
         }
     }
-    // std::cout << "start of cycle" << std::endl;
     for (size_t i = 0; i < _post_order_list.size(); ++i) {
-        // std::cout << "current node: " << _post_order_list[i]->node_id() << "-";
         _post_order_list[i]->set_adj_list(vecList[i]);
-        // for (int j = 0; j < vecList[i].size(); ++j) {
-        //     std::cout << (vecList[i])[j]->node_id() << ",";
-        // }
-        // std::cout << std::endl;
     }
 }
 

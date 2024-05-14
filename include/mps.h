@@ -196,7 +196,7 @@ public:
     void construct_connected_components(ogdf::Graph &G, ogdf::List<ogdf::Graph> &components);
     struct PairHash {
         size_t operator()(const pair<int, int>& p) const {
-            return p.first & p.second;
+            return hash<int>()(p.first) ^ hash<int>()(p.second);
         }
     };
 

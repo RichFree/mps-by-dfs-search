@@ -53,6 +53,7 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
     const int final_value = old_order.size() - 1;
     const int iter_size = k_max;
     const int end_plat_iter = static_cast<int>(0.1 * iter_size); // End of the plateau
+    // const int end_plat_iter = 0;
     double growth_factor = std::log(final_value) / (iter_size - end_plat_iter - 1);
 
     int mutate_index = 0;
@@ -71,13 +72,12 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
                 updated_value = std::exp(growth_factor * (k - end_plat_iter));
             }
 
-            mutate_index = 0;
 
             compute_mps(G, mutate_index, temp_order, new_removed_size);
-            vector<int> check_order = generate_guided_post_order_iterative(G, temp_order);
-            int check1 = compute_removed_edge_size(G, check_order);
-
-
+            // we run a single compute removed edge to double check that the results match
+            // internally compute_mps already ran a round of guided traversal to rotate the result back
+            int check1 = compute_removed_edge_size(G, temp_order);
+            // if the trees are the same, the results are the same
             assert(new_removed_size == check1);
 
 
@@ -91,9 +91,9 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
             } else {
                 temp_order = old_order;
             }
-            // if (k % 100 == 0) {
-            //     std::cout << k << "," << old_removed_size << std::endl;;
-            // }
+            if (k % 100 == 0) {
+                std::cout << k << "," << old_removed_size << std::endl;;
+            }
         }
     }
     std::cout << "final: " << old_removed_size << std::endl;;
