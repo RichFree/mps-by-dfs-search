@@ -214,6 +214,7 @@ public:
 	int output_removed_edge_size();
     vector<int> return_post_order();
     void print_post_order();
+    void print_edge_list();
 	void sort_adj_list();
 	void determine_edges();
 	void back_edge_traversal();
