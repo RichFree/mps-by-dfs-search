@@ -23,6 +23,7 @@ using namespace std;
 // these functions are defined in mps_test.cpp
 // but their signatures are not in mps.h, hence they are declared here
 ogdf::Graph read_from_gml(string input_file);
+void construct_connected_components(ogdf::Graph &G, ogdf::List<ogdf::Graph> &components);
 vector<int> generate_post_order_iterative(const ogdf::Graph &G);
 vector<int> generate_guided_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order);
 vector<int> generate_mutated_post_order_iterative(const ogdf::Graph &G, const vector<int> &post_order, int mutate_point);
@@ -100,6 +101,7 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
 }
 
 
+
 //-----------------------------------------------------------------------------------
 // Main function.
 //-----------------------------------------------------------------------------------
@@ -110,20 +112,35 @@ int main(int argc, char* argv[]) {
     int k_max = std::stoi(argv[2]);
     int reruns = std::stoi(argv[3]);
 
-    const ogdf::Graph G = read_from_gml(input_file);
+    ogdf::Graph G = read_from_gml(input_file);
 
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // perform MPS via repeated mutation
-    vector<int> post_order = repeated_mutation(G, k_max, reruns);
+
+    // lets create graphs of connected components
+    ogdf::List<ogdf::Graph> components;
+    construct_connected_components(G, components);
+    vector<int> post_order;
+
+    int removed_edges = 0;
+    int loop_count = 0;
+    for (auto component:components) {
+        if (component.numberOfEdges() == 0) {
+            continue;
+        }
+        std::cout << "component: " << loop_count++ << std::endl;
+        std::cout << component.numberOfNodes() << std::endl;
+        std::cout << component.numberOfEdges() << std::endl;
+        post_order = repeated_mutation(component, k_max, reruns);
+        removed_edges += compute_removed_edge_size(component, post_order);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     double time = static_cast<double>(microseconds) / 1'000'000.0;
 
    
-    int removed_edges = compute_removed_edge_size(G, post_order);
     string filename = filesystem::path(input_file).stem();
     std::cout << filename << ", " << removed_edges << ", " << time << std::endl;
 

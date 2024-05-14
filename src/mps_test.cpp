@@ -4,6 +4,8 @@
 
 #include "mps.h"
 #include <cassert>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <ogdf/fileformats/GraphIO.h>
 
@@ -174,4 +176,51 @@ int maximal_planar_subgraph_finder::output_removed_edge_size() {
         if (_is_back_edge_eliminate[i]) ++sum; 
     }
     return sum;
+}
+
+// -----
+// DFS for main to separate disconnected graph into separate components
+// -----
+
+void construct_connected_components(ogdf::Graph &G, ogdf::List<ogdf::Graph> &components) {
+    maximal_planar_subgraph_finder m;
+    m.construct_connected_components(G, components);
+}
+
+void 
+maximal_planar_subgraph_finder::construct_connected_components(ogdf::Graph &G, 
+ogdf::List<ogdf::Graph> &components) {
+    init_from_graph(G);
+    for (size_t i = 0; i < _node_list.size(); ++i) {
+        if (!_node_list[i]->is_marked()) {
+            ogdf::Graph component;
+            // this is a vector of nodes in a connected component
+            vector<node*> return_node_list;
+            dfs_cc(_node_list[i], return_node_list);
+            // now we construct a Graph using the return_node_list
+            unordered_map<int, ogdf::node> index_to_node;
+            for (auto current_node : return_node_list) {
+                ogdf::node v = component.newNode(current_node->node_id());
+                index_to_node[current_node->node_id()] = v;
+            }
+            // we keep an unordered set of edges to only add edges if its never been added
+            unordered_set<pair<int,int>, PairHash> added_edges;
+            for (auto current_node : return_node_list) {
+                vector<node*> neighbor_list = current_node->_adj_list;
+                for (auto it = neighbor_list.begin(); it != neighbor_list.end(); ++it) {
+                    node* neighbor_node = (*it);
+                    int first_node = current_node->node_id();
+                    int second_node = neighbor_node->node_id();
+                    // only add edge if never seen before
+                    if (added_edges.find(make_pair(first_node, second_node)) == added_edges.end()) {
+                        component.newEdge(index_to_node[first_node], 
+                                        index_to_node[second_node]);
+                        added_edges.insert(make_pair(first_node, second_node));
+                        added_edges.insert(make_pair(second_node, first_node));
+                    }
+                }
+            }
+            components.pushBack(component);
+        }
+    }
 }

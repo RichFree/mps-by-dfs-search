@@ -193,10 +193,18 @@ public:
     bool sort_by_order(const unordered_map<int, int>& node_id_to_pos, node* a, node* b); 
     bool sort_by_free_neighbors(node* a, node* b);
 
+    void construct_connected_components(ogdf::Graph &G, ogdf::List<ogdf::Graph> &components);
+    struct PairHash {
+        size_t operator()(const pair<int, int>& p) const {
+            return p.first & p.second;
+        }
+    };
+
 
 	void post_order_traversal_iterative();
 	void guided_post_order_traversal_iterative(const vector<int> &post_order);
 	void mutated_post_order_traversal_iterative(const vector<int> &post_order, int mutate_point);
+    void dfs_cc(node* root_node, vector<node*> &return_node_list);
     void dfs(node* root_node, int &post_order_id);
     void dfs_guided(node* root_node, int &post_order_id, const unordered_map<int, int> &node_id_to_pos);
     void dfs_mutated(node* root_node, int &post_order_id, 

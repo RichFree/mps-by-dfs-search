@@ -50,6 +50,63 @@ maximal_planar_subgraph_finder::sort_by_free_neighbors(node* a, node* b) {
     return count_a < count_b;
 }
 
+// ---- for main to find connected components
+
+void
+maximal_planar_subgraph_finder::dfs_cc(node* root_node, vector<node*> &return_node_list) {
+    // mark all vertices as not visited
+    vector<bool> in_post_order(_node_list.size(), false);
+
+    // create stack for DFS
+    stack<node*> stack;
+
+    // push the current root node into the stack
+    stack.push(root_node);
+
+    while (!stack.empty()) {
+        // pop node from stack
+        node* current_node = stack.top();
+        // std::cout << "1 top: " << current_node->node_id() << '\n';
+
+
+        // stack may contain same vertex twice
+        // print the popped item only if it is not visited
+        // proceed if current node is not markd
+        if (!current_node->is_marked()) {
+            current_node->mark();
+            vector<node*> neighbor_list = current_node->_adj_list;
+            // stack is LIFO - last element in is first to be popped
+            // hence we use a reverse iterator
+            for (auto it = neighbor_list.rbegin(); it != neighbor_list.rend(); ++it) {
+                node* node = (*it);
+                // only add neighbor to stack if it is not visited
+                if (!node->is_marked()) {
+                    // std::cout << "2 add: " << node->node_id() << '\n';
+                    node->set_parent(current_node);
+                    stack.push(node);
+                }
+            }
+        } else {
+            // it is possible to see a node again for many times
+            // this section deals with marked nodes that have been added many time
+            // we want to skip nodes that were already added to the output
+            if (in_post_order[current_node->node_id()]) {
+                stack.pop();
+                continue;
+            }
+
+            // here we save the node
+            return_node_list.push_back(current_node);
+            in_post_order[current_node->node_id()] = true;
+            stack.pop();
+        }
+    }
+
+
+
+}
+// -----
+
 
 
 void
@@ -444,6 +501,7 @@ maximal_planar_subgraph_finder::sort_adj_list() {
 void 
 maximal_planar_subgraph_finder::determine_edges() {
     for (size_t i = 0; i < _post_order_list.size(); ++i) {
+        // if there is no parent, then just ignore the node
         if (_post_order_list[i]->parent() == nullptr) continue;
         _post_order_list[i]->set_1st_label(_post_order_list[i]->parent()->post_order_index());
         _edge_list.push_back(pair<node*, node*> (_post_order_list[i]->parent(), _post_order_list[i]));
@@ -455,6 +513,7 @@ maximal_planar_subgraph_finder::determine_edges() {
             // the node is the child, the adj is the ancestor
             // the id in the _post_order_list of child must be lesser than the ancestor
             if (_post_order_list[i]->adj(j)->post_order_index() > static_cast<int>(i)) break;
+            // if the child points to an immediate parent, then also ignore it
             if (_post_order_list[i]->adj(j)->get_1st_label() == static_cast<int>(i)) continue;
             _back_edge_list.push_back(pair<node*, node*> (_post_order_list[i], _post_order_list[i]->adj(j)));
             _is_back_edge_eliminate.push_back(false);
