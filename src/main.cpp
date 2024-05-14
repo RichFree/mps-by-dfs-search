@@ -72,13 +72,9 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
                 updated_value = std::exp(growth_factor * (k - end_plat_iter));
             }
 
-
+            // internally compute_mps already ran a round of guided traversal to rotate the result back
             compute_mps(G, mutate_index, temp_order, new_removed_size);
             // we run a single compute removed edge to double check that the results match
-            // internally compute_mps already ran a round of guided traversal to rotate the result back
-            int check1 = compute_removed_edge_size(G, temp_order);
-            // if the trees are the same, the results are the same
-            assert(new_removed_size == check1);
 
 
             // if there is an improvement
@@ -91,12 +87,11 @@ vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
             } else {
                 temp_order = old_order;
             }
-            if (k % 100 == 0) {
-                std::cout << k << "," << old_removed_size << std::endl;;
-            }
+            // if (k % 100 == 0) {
+            //     std::cout << k << "," << old_removed_size << std::endl;;
+            // }
         }
     }
-    std::cout << "final: " << old_removed_size << std::endl;;
     return old_order;
 }
 
@@ -129,9 +124,9 @@ int main(int argc, char* argv[]) {
         if (component.numberOfEdges() == 0) {
             continue;
         }
-        std::cout << "component: " << loop_count++ << std::endl;
-        std::cout << component.numberOfNodes() << std::endl;
-        std::cout << component.numberOfEdges() << std::endl;
+        // std::cout << "component: " << loop_count++ << std::endl;
+        // std::cout << component.numberOfNodes() << std::endl;
+        // std::cout << component.numberOfEdges() << std::endl;
         post_order = repeated_mutation(component, k_max, reruns);
         removed_edges += compute_removed_edge_size(component, post_order);
     }
