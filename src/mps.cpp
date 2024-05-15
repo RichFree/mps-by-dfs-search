@@ -349,7 +349,13 @@ void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_orde
                     std::sort(neighbor_list.begin(), neighbor_list.begin() + i, [this](node *a, node *b)
                             { return sort_by_free_neighbors(a, b); });
                     // we shuffle the section close to the index
-                    std::shuffle(neighbor_list.begin() + (i * 7/10), neighbor_list.begin() + i, rng);
+                    // std::shuffle(neighbor_list.begin() + (i * 7/10), neighbor_list.begin() + i, rng);
+                    // rather than shuffle, we swap the node at i and some position between i*7/10 and i
+                    std::uniform_int_distribution<size_t> dist(i*7/10, i);
+                    size_t select = dist(rng);
+                    node* temp_node = neighbor_list[i];
+                    neighbor_list[i] = neighbor_list[select];
+                    neighbor_list[select] = neighbor_list[i];
                 }
                 node* node = neighbor_list[i];
                 // only add neighbor to stack if it is not visited
