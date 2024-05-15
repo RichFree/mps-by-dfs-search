@@ -40,59 +40,47 @@ void vector_printer(const vector<int>& state) {
 
 vector<int> repeated_mutation(const ogdf::Graph &G, int k_max, int reruns) {
     // generate first post order
-    vector<int> old_order = generate_post_order_iterative(G);
-    // vector_printer(old_order);
-    vector<int> temp_order = old_order;
+    vector<int> best_order = generate_post_order_iterative(G);
+    vector<int> current_order = best_order;
     int new_removed_size;
-    int old_removed_size = INT_MAX;
+    int best_removed_size = INT_MAX;
 
     // prepare random selection
     std::random_device rd;
     std::mt19937 gen{rd()}; // seed the generator
 
-    const int final_value = old_order.size() - 1;
-    const int iter_size = k_max;
-    const int end_plat_iter = static_cast<int>(0.1 * iter_size); // End of the plateau
-    // const int end_plat_iter = 0;
-    double growth_factor = std::log(final_value) / (iter_size - end_plat_iter - 1);
-
+    // variables to manage exponential mutate_index iteration
+    int index_range = best_order.size() - 1; // assumes start from 0
+    int index_start = 0;
+    // given k_max and number of range for mutate_index, we compute growth factor
+    // so that at mutate_factor spans index_range in an exponential rate
+    double growth_factor = std::log(index_range + 1) / (k_max);
     int mutate_index = 0;
-    double updated_value = 0;
 
     for (int r = 0; r < reruns; ++r) {
 
         for (int k = 0; k < k_max; ++k) {
-            // initial plateau phase
-            if (k < end_plat_iter) {
-                mutate_index = 0;
-            // exponential growth
-            } else {
-                mutate_index = static_cast<int>(updated_value);
-                // update for next round
-                updated_value = std::exp(growth_factor * (k - end_plat_iter));
-            }
+            // update mutate_index based on exponential rate wrt k
+            mutate_index = index_start + static_cast<int>(std::exp(growth_factor * k) - 1);
 
             // internally compute_mps already ran a round of guided traversal to rotate the result back
-            compute_mps(G, mutate_index, temp_order, new_removed_size);
-            // we run a single compute removed edge to double check that the results match
+            // function will return via reference to current_order and new_removed_size
+            compute_mps(G, mutate_index, current_order, new_removed_size);
 
 
             // if there is an improvement
             // 1. update the removed size to use the new smaller size
             // 2. update the old_order to be the new_order
-            if (new_removed_size < old_removed_size) {
-                old_removed_size = new_removed_size;
-                old_order = temp_order;
+            if (new_removed_size < best_removed_size) {
+                best_removed_size = new_removed_size;
+                best_order = current_order;
             // if there is no improvement, we revert the temp_order to the old_order
             } else {
-                temp_order = old_order;
+                current_order = best_order;
             }
-            // if (k % 100 == 0) {
-            //     std::cout << k << "," << old_removed_size << std::endl;;
-            // }
         }
     }
-    return old_order;
+    return best_order;
 }
 
 
