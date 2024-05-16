@@ -336,16 +336,14 @@ void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_orde
                         { return sort_by_order(node_id_to_pos, a, b); });
             }
 
-
             // increment traversal index when encountering a node for first time
             traversal_index++;
-
 
             // stack is LIFO - last element in is first to be popped
             // hence we use a reverse iterator
 
             for (size_t i = neighbor_list.size() - 1; i != std::numeric_limits<size_t>::max(); --i) {
-                if (traversal_index >= mutate_point) {
+                if (traversal_index - 1 >= mutate_point) { // undo the earlier increment
                     std::sort(neighbor_list.begin(), neighbor_list.begin() + i, [this](node *a, node *b)
                             { return sort_by_free_neighbors(a, b); });
                     // we shuffle the section close to the index
