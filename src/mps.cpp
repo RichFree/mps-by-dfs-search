@@ -355,7 +355,7 @@ void maximal_planar_subgraph_finder::dfs_mutated(node *root_node, int &post_orde
                     size_t select = dist(rng);
                     node* temp_node = neighbor_list[i];
                     neighbor_list[i] = neighbor_list[select];
-                    neighbor_list[select] = neighbor_list[i];
+                    neighbor_list[select] = temp_node;
                 }
                 node* node = neighbor_list[i];
                 // only add neighbor to stack if it is not visited
