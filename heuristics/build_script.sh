@@ -1,5 +1,6 @@
 #!/bin/bash
 
+mkdir -p bin
 g++ ogdf_mps_bm.cpp -lOGDF -lCOIN -o bin/ogdf_mps_bm -O3 -march=native -Wall
 
 echo "built ogdf_mps_bm"

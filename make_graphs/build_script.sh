@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p bin
+
 g++ make_regular_graph.cpp -lOGDF -o bin/make_regular_graph -O3 -march=native -Wall
 
 echo "built make_regular_graph"
